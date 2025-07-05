@@ -1,9 +1,13 @@
 package com.khumbu.dailyplanner.service;
 
+import com.khumbu.dailyplanner.exceptions.DailyPlannerException;
+import com.khumbu.dailyplanner.exceptions.DayException;
 import com.khumbu.dailyplanner.models.Day;
 import com.khumbu.dailyplanner.models.DayDto;
 import com.khumbu.dailyplanner.repository.DayRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
@@ -14,6 +18,9 @@ import java.util.Optional;
 @Service
 @Slf4j
 public class DayService {
+
+    private  Logger logger= LoggerFactory.getLogger(DayService.class);
+
     @Autowired
     private DayRepository dayRepository;
     //todo add logging
@@ -21,13 +28,22 @@ public class DayService {
     public DayDto save(DayDto dayDto){
 
         if(ObjectUtils.isEmpty(dayDto)){
-            throw new RuntimeException("DayDto cannot be empty");
+
+            throw new DayException("DayDto cannot be empty");
         }
-        Day day =dayRepository.findByDate(dayDto.getDate());
-        if (day!=null){
-            throw new RuntimeException("Day already exists");
+        Day day = dayRepository.findByDate(dayDto.getDate());
+        if (day != null){
+            logger.error(" inside exception if ");
+            return null;
         }
-         day = Day.builder().id(dayDto.getId()).date(dayDto.getDate()).build();
+
+        //find maximum id
+        Long maxId=dayRepository.findMaxId();
+         if(maxId==null)
+         {
+             maxId=0L;
+         }
+        day = Day.builder().id(maxId+1).date(dayDto.getDate()).build();
         return DayDto.create(dayRepository.save(day));
     }
 
@@ -42,6 +58,6 @@ public class DayService {
             dayRepository.deleteById(id);
             return DayDto.create(dayOptional.get());
         }
-        throw new RuntimeException("Day with id was not found : " +id);
+        throw new DailyPlannerException("Day with id was not found : " +id);
     }
 }

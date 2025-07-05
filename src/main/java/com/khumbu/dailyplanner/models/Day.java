@@ -2,9 +2,11 @@ package com.khumbu.dailyplanner.models;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Entity
 @AllArgsConstructor
@@ -16,6 +18,9 @@ public class Day {
     @Id
     private Long id;
     private LocalDate date;
+    // @OneToMany is used to define the property in the task class used to map the mappedBy variable
+    @OneToMany(mappedBy = "day")
+    private List<Task> tasks;
 
 
 }
