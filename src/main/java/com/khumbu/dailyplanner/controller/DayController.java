@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -17,10 +18,17 @@ public class DayController {
 
     @Autowired
     private DayService dayService;
-@GetMapping
-public List<DayDto> getAll(){
-    return dayService.getAll();
-}
+    @GetMapping
+    public List<DayDto> getAll(){
+        return dayService.getAll();
+    }
+
+    @GetMapping("/:date")
+    public DayDto getDayInfo(@PathVariable LocalDate date){
+        return this.dayService.getDay(date);
+    }
+
+
     @PostMapping("/save")
     public ResponseEntity<Object> saveDay(@RequestBody  DayDto dayDto){
         DayDto dayDto1= dayService.save(dayDto);
@@ -34,6 +42,5 @@ public List<DayDto> getAll(){
     @DeleteMapping("/delete/{id}")
     public DayDto deleteById(@PathVariable Long id){
     return dayService.deleteById(id);
-
     }
 }
