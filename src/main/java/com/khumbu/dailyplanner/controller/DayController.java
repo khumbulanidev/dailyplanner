@@ -1,7 +1,9 @@
 package com.khumbu.dailyplanner.controller;
 
 import com.khumbu.dailyplanner.dto.ApiResponseDto;
+import com.khumbu.dailyplanner.models.Day;
 import com.khumbu.dailyplanner.models.DayDto;
+import com.khumbu.dailyplanner.models.TaskDto;
 import com.khumbu.dailyplanner.service.DayService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -43,4 +45,10 @@ public class DayController {
     public DayDto deleteById(@PathVariable Long id){
     return dayService.deleteById(id);
     }
+
+    @GetMapping("/{month}/{year}")
+    public ResponseEntity<List<Day>> getDaysOfMonth(@PathVariable Long month, @PathVariable Long year){
+        return ResponseEntity.ok(dayService.getDaysOfTheMonth(month, year));
+    }
+
 }
