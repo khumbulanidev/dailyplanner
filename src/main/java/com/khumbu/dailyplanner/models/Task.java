@@ -1,9 +1,8 @@
 package com.khumbu.dailyplanner.models;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
@@ -18,11 +17,12 @@ public class Task {
     private Long id;
 
     //@JoinColumn points to the column used to map in the Day class
-    @ManyToOne
+    @ManyToOne()
     @JoinColumn(name = "day_id", nullable=false)
+    @JsonIgnore
     private Day day;
     private int duration;
-    private  String name;
+    private String name;
     private String comments;
     private int quantity;
     private boolean isDone;

@@ -12,7 +12,7 @@ public class Role{
     private Long roleId;
 
     @Column(name = "role")
-    private String name;
+    private  String name;
     @ManyToMany(mappedBy = "roles")
     List<Users> users = new ArrayList<>();
 

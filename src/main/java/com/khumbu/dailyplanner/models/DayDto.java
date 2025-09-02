@@ -17,12 +17,13 @@ public class DayDto {
     private Long id;
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private LocalDate date;
+    private List<Task> tasks;
 
     public static DayDto create(Day day){
         if(day == null){
             throw new DayException("Day cannot be null");
         }
-        return DayDto.builder().id(day.getId()).date(day.getDate()).build();
+        return DayDto.builder().id(day.getId()).date(day.getDate()).tasks(day.getTasks()).build();
     }
 
     public static List<DayDto> createList(List<Day> dayList){
@@ -37,4 +38,14 @@ public class DayDto {
         day.setDate(date);
         return day;
     }
+
+    public List<Task> getTasks() {
+        return tasks;
+    }
+
+    public void setTasks(List<Task> tasks) {
+        this.tasks = tasks;
+    }
+
+
 }

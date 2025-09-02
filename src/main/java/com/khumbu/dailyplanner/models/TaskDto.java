@@ -15,7 +15,7 @@ public class TaskDto {
 
     private Long id;
     private int duration;
-    private  String name;
+    private String name;
     private String comments;
     private int quantity;
     private boolean isDone;

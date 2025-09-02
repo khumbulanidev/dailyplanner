@@ -1,34 +1,45 @@
 package com.khumbu.dailyplanner.dto;
 
+
+import com.khumbu.dailyplanner.models.RefreshToken;
+
 public class AuthenticationResponseDto {
 
-    private String email;
-    private String token;
+    private java.lang.String email;
+    private java.lang.String string;
+    private RefreshToken refreshToken;
     private long tokenExpirationDate;
 
-    public AuthenticationResponseDto(String email, String token, long tokenExpirationDate) {
+    public AuthenticationResponseDto(String email, String string, long tokenExpirationDate) {
         this.email = email;
-        this.token = token;
+        this.string = string;
+        this.tokenExpirationDate = tokenExpirationDate;
+    }
+
+    public AuthenticationResponseDto(java.lang.String email, java.lang.String string, long tokenExpirationDate, RefreshToken refreshToken) {
+        this.email = email;
+        this.string = string;
+        this.refreshToken = refreshToken;
         this.tokenExpirationDate = tokenExpirationDate;
     }
 
     public AuthenticationResponseDto() {
     }
 
-    public String getEmail() {
+    public java.lang.String getEmail() {
         return email;
     }
 
-    public void setEmail(String email) {
+    public void setEmail(java.lang.String email) {
         this.email = email;
     }
 
-    public String getToken() {
-        return token;
+    public java.lang.String getToken() {
+        return string;
     }
 
-    public void setToken(String token) {
-        this.token = token;
+    public void setToken(java.lang.String string) {
+        this.string = string;
     }
 
     public long getTokenExpirationDate() {
@@ -39,12 +50,19 @@ public class AuthenticationResponseDto {
         this.tokenExpirationDate = tokenExpirationDate;
     }
 
+    public RefreshToken getRefreshToken() {
+        return refreshToken;
+    }
+
+    public void setRefreshToken(RefreshToken refreshToken) {
+        this.refreshToken = refreshToken;
+    }
 
     @Override
-    public String toString() {
+    public java.lang.String toString() {
         return "AuthenticationResponseDto{" +
                 "email='" + email + '\'' +
-                ", token='" + token + '\'' +
+                ", token='" + string + '\'' +
                 ", tokenExpirationDate=" + tokenExpirationDate +
                 '}';
     }

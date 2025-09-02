@@ -10,7 +10,7 @@ public class ApiResponseDto<T> {
    private String message;
    private HttpStatus httpStatus;
    private String responseCode;
-   private T t;
+   private T data;
    private  Exception exception;
 
    private String token;
@@ -18,28 +18,28 @@ public class ApiResponseDto<T> {
     public ApiResponseDto() {
     }
 
-    public ApiResponseDto(T t, String message, HttpStatus httpStatus) {
-        this.t = t;
+    public ApiResponseDto(T data, String message, HttpStatus httpStatus) {
+        this.data = data;
         this.message = message;
         this.httpStatus = httpStatus;
     }
 
-    public ApiResponseDto(LocalDateTime time, String message, HttpStatus httpStatus, String responseCode, T t, Exception exception, String token) {
+    public ApiResponseDto(LocalDateTime time, String message, HttpStatus httpStatus, String responseCode, T data, Exception exception, String token) {
         this.time = time;
         this.message = message;
         this.httpStatus = httpStatus;
         this.responseCode = responseCode;
-        this.t = t;
+        this.data = data;
         this.exception = exception;
         this.token = token;
     }
 
-    public ApiResponseDto(LocalDateTime time, String message, HttpStatus httpStatus, String responseCode, T t, Exception exception) {
+    public ApiResponseDto(LocalDateTime time, String message, HttpStatus httpStatus, String responseCode, T data, Exception exception) {
         this.time = time;
         this.message = message;
         this.httpStatus = httpStatus;
         this.responseCode = responseCode;
-        this.t = t;
+        this.data = data;
         this.exception = exception;
     }
 
@@ -75,13 +75,7 @@ public class ApiResponseDto<T> {
         this.responseCode = responseCode;
     }
 
-    public T getData() {
-        return t;
-    }
 
-    public void setData(T t) {
-        this.t = t;
-    }
 
     public Exception getException() {
         return exception;
@@ -91,12 +85,12 @@ public class ApiResponseDto<T> {
         this.exception = exception;
     }
 
-    public T getT() {
-        return t;
+    public T getData() {
+        return data;
     }
 
-    public void setT(T t) {
-        this.t = t;
+    public void setData(T data) {
+        this.data = data;
     }
 
     public String getToken() {
@@ -115,7 +109,7 @@ public class ApiResponseDto<T> {
                 ", message='" + message + '\'' +
                 ", httpStatus=" + httpStatus +
                 ", responseCode='" + responseCode + '\'' +
-                ", t=" + t +
+                ", t=" + data +
                 ", exception=" + exception +
                 ", token='" + token + '\'' +
                 '}';

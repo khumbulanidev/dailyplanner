@@ -33,7 +33,7 @@ public class SecurityConfiguration {
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception{
         return httpSecurity.csrf(cs ->cs.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/users/sign-up", "/api/v1/users/login").permitAll()
+                        .requestMatchers("/api/v1/users/sign-up", "/api/v1/users/login", "/api/v1/users/refresh-token").permitAll()
                         .anyRequest().authenticated()
                 )
                 .formLogin(Customizer.withDefaults())

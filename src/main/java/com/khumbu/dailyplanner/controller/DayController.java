@@ -25,6 +25,8 @@ public class DayController {
         return dayService.getAll();
     }
 
+
+
     @GetMapping("/:date")
     public DayDto getDayInfo(@PathVariable LocalDate date){
         return this.dayService.getDay(date);
