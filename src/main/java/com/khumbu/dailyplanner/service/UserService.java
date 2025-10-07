@@ -4,6 +4,7 @@ import com.khumbu.dailyplanner.dto.ApiResponseDto;
 import com.khumbu.dailyplanner.dto.AuthenticationResponseDto;
 import com.khumbu.dailyplanner.dto.LoginDto;
 import com.khumbu.dailyplanner.dto.UserDto;
+import com.khumbu.dailyplanner.exceptions.DailyPlannerException;
 import com.khumbu.dailyplanner.exceptions.DayException;
 import com.khumbu.dailyplanner.models.RefreshToken;
 import com.khumbu.dailyplanner.models.Role;
@@ -115,17 +116,6 @@ public class UserService {
         }
     }
 
-//    public String authenticate(UserDto userDto) {
-//
-//        //convert userdto to user
-//        Users user = generateUser(userDto);
-//        //authenticate the user
-//        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(user.getEmail(), user.getPassword()));
-//
-//        return authentication.isAuthenticated() ? "Success" : "Fail";
-//
-//    }
-
     public Users generateUser(UserDto userDto){
         Users user = new Users(userDto.getEmail(), userDto.getFirstname(), userDto.getLastname(), userDto.getPhone(), userDto.getPassword());
         return  user;
@@ -163,5 +153,17 @@ public class UserService {
         LOGGER.info("End authenticate");
         return responseDto;
 
+    }
+
+    public String logout(String email) {
+
+        Users user = userRepository.findById(email).orElseThrow(()-> new DailyPlannerException("User with username "+ email + " was not found"));
+        Optional<RefreshToken> refreshTokenOptional = refreshTokenService.deleteByEmail(email);
+        if(refreshTokenOptional.isPresent()){
+            return "DELETED";
+        }
+        else{
+            return  "NO TOKEN FOUND";
+        }
     }
 }

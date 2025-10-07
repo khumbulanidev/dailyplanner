@@ -1,6 +1,7 @@
 package com.khumbu.dailyplanner.service;
 
 import com.khumbu.dailyplanner.exceptions.DailyPlannerException;
+import com.khumbu.dailyplanner.exceptions.TokenException;
 import com.khumbu.dailyplanner.models.RefreshToken;
 import com.khumbu.dailyplanner.models.Users;
 import com.khumbu.dailyplanner.repository.TokenRepository;
@@ -8,6 +9,7 @@ import com.khumbu.dailyplanner.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -37,7 +39,7 @@ public class RefreshTokenService {
 
 
         RefreshToken refactorToken = RefreshToken.builder().user(user).refreshToken(UUID.randomUUID().toString())
-                .expiryDate(Date.from(date.plusMinutes(10).atZone(ZoneId.systemDefault()).toInstant()))
+                .expiryDate(Date.from(date.plusMinutes(5).atZone(ZoneId.systemDefault()).toInstant()))
                 .build();
         return tokenRepository.save(refactorToken);
     }
@@ -49,8 +51,21 @@ public class RefreshTokenService {
     public RefreshToken verifyExpiration(RefreshToken refreshToken){
         if(refreshToken.getExpiryDate().compareTo(new Date()) < 0){
             tokenRepository.delete(refreshToken);
-            throw new DailyPlannerException(refreshToken.getRefreshToken() + "Refresh token expired, please sign in again.");
+            throw new TokenException(refreshToken.getRefreshToken() + " Refresh token expired, please sign in again.", HttpStatus.UNAUTHORIZED);
         }
     return refreshToken;
+    }
+
+    public Optional<RefreshToken> findByEmail(String email) {
+        return tokenRepository.findByEmail(email);
+
+    }
+
+    public Optional<RefreshToken> deleteByEmail(String email){
+        Optional<RefreshToken> refreshTokenOptional = tokenRepository.findByEmail(email);
+        if(refreshTokenOptional.isPresent()){
+            tokenRepository.delete(refreshTokenOptional.get());
+        }
+        return refreshTokenOptional;
     }
 }

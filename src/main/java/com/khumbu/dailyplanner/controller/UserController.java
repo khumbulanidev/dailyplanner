@@ -1,13 +1,8 @@
 package com.khumbu.dailyplanner.controller;
 
-import com.khumbu.dailyplanner.dto.ApiResponseDto;
-import com.khumbu.dailyplanner.dto.AuthenticationResponseDto;
-import com.khumbu.dailyplanner.dto.LoginDto;
-import com.khumbu.dailyplanner.dto.UserDto;
+import com.khumbu.dailyplanner.dto.*;
 import com.khumbu.dailyplanner.exceptions.DailyPlannerException;
-import com.khumbu.dailyplanner.dto.RefreshTokenDto;
 import com.khumbu.dailyplanner.models.RefreshToken;
-import com.khumbu.dailyplanner.models.Users;
 import com.khumbu.dailyplanner.service.JWTService;
 import com.khumbu.dailyplanner.service.RefreshTokenService;
 import com.khumbu.dailyplanner.service.UserService;
@@ -37,15 +32,21 @@ private RefreshTokenService refreshTokenService;
         return ResponseEntity.ok(apiResponseDto);
     }
 
+    @PostMapping("/logout")
+    public ResponseEntity<LogoutDto> logout(@RequestBody String username){
+        String response = userService.logout(username);
+        LogoutDto logoutDto = new LogoutDto(username, response);
+        return ResponseEntity.ok(logoutDto);
+    }
+
     @PostMapping("/refresh-token")
-    public ResponseEntity<?> refreshToken(@RequestBody RefreshTokenDto refreshTokenDto){
-      return  ResponseEntity.ok(
-        refreshTokenService.findByToken(refreshTokenDto.getToken())
+    public ResponseEntity<AuthenticationResponseDto> refreshToken(@RequestBody RefreshTokenDto refreshTokenDto){
+        AuthenticationResponseDto authenticationResponse= refreshTokenService.findByToken(refreshTokenDto.getRefreshToken())
                 .map(refreshTokenService::verifyExpiration)
                 .map(RefreshToken::getUser)
                 .map(user -> {
                     java.lang.String accessString = jwtService.generateToken(user.getEmail());
-                    RefreshToken refreshToken = refreshTokenService.findByToken(refreshTokenDto.getToken()).get();
+                    RefreshToken refreshToken = refreshTokenService.findByToken(refreshTokenDto.getRefreshToken()).get();
                     AuthenticationResponseDto authenticationResponseDto = new AuthenticationResponseDto();
                     authenticationResponseDto.setToken(accessString);
                     authenticationResponseDto.setEmail(user.getEmail());
@@ -53,8 +54,10 @@ private RefreshTokenService refreshTokenService;
                     authenticationResponseDto.setRefreshToken(refreshToken);
                     return authenticationResponseDto;
 
-                }).orElseThrow(()-> new DailyPlannerException("Refresh token not found in database"))
-      );
+                }).orElseThrow(()-> new DailyPlannerException("Refresh token not found in database"));
+
+      return  ResponseEntity.ok(authenticationResponse);
+
     }
 
 }
