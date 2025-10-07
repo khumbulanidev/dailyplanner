@@ -13,6 +13,7 @@ public class RefreshTokenDto {
 
     //used to request a refresh token
     //this is just a UUID a random string
-    private String token;
+    private String email;
+    private String refreshToken;
 
 }
