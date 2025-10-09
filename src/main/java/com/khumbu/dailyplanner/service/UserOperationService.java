@@ -22,6 +22,7 @@ public class UserOperationService {
     public UserOperation save(UserOperation operation) {
         verifyOperation(operation);
         UserOperation userOperation = new UserOperation(operation.getOperation());
+        userOperation.setLink(operation.getLink());
         return userOperationRepository.save(userOperation);
     }
 

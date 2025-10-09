@@ -14,11 +14,14 @@ public class UserOperation {
 
     private boolean isActive;
 
+    private String link;
 
-    public UserOperation(Long id, String operation, boolean isActive) {
+
+    public UserOperation(Long id, String operation, boolean isActive, String link) {
         this.id = id;
         this.operation = operation;
         this.isActive = isActive;
+        this.link = link;
     }
 
     public UserOperation() {
@@ -29,9 +32,10 @@ public class UserOperation {
         this.isActive = true;
     }
 
-    public UserOperation(String operation, boolean isActive) {
+    public UserOperation(String operation, boolean isActive, String link) {
         this.operation = operation;
         this.isActive = true;
+        this.link = link;
     }
 
     public Long getId() {
@@ -58,12 +62,21 @@ public class UserOperation {
         isActive = active;
     }
 
+    public String getLink() {
+        return link;
+    }
+
+    public void setLink(String link) {
+        this.link = link;
+    }
+
     @Override
     public String toString() {
         return "UserOperation{" +
                 "id=" + id +
                 ", operation='" + operation + '\'' +
                 ", isActive=" + isActive +
+                ", link='" + link + '\'' +
                 '}';
     }
 }
