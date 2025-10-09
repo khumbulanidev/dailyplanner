@@ -3,9 +3,11 @@ package com.khumbu.dailyplanner.controller;
 
 import com.khumbu.dailyplanner.models.TaskDto;
 import com.khumbu.dailyplanner.service.TaskService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -32,13 +34,15 @@ public class TaskController {
     }
 
     @GetMapping("/today/{date}")
-    public List<TaskDto> getTasksForToday(@PathVariable String date){
+    public List<TaskDto> getTasksForToday(@PathVariable String date, @RequestHeader("Authorization") String authHeader){
+        LOGGER.info("request {} ", authHeader);
         LOGGER.info("Inside getTasksForToday {}", date);
         return taskService.getTasksByDate(date);
     }
 
     @GetMapping("/date/{date}")
-    public List<TaskDto> getTasksByDate(@PathVariable String date){
+    public List<TaskDto> getTasksByDate(@PathVariable String date, HttpServletRequest request){
+        LOGGER.info("request {} ", request);
         LOGGER.info("Inside getTasksByDate {}", date);
         return taskService.getTasksByDate(date);
     }
