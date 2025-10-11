@@ -23,6 +23,13 @@ public class UserOperationService {
         verifyOperation(operation);
         UserOperation userOperation = new UserOperation(operation.getOperation());
         userOperation.setLink(operation.getLink());
+        if(userOperation.getPosition() != null){
+            userOperation.setPosition(operation.getPosition());
+        }
+        else{
+            userOperation.setPosition(1000);
+        }
+
         return userOperationRepository.save(userOperation);
     }
 

@@ -16,12 +16,22 @@ public class UserOperation {
 
     private String link;
 
+    private int position;
+
 
     public UserOperation(Long id, String operation, boolean isActive, String link) {
         this.id = id;
         this.operation = operation;
         this.isActive = isActive;
         this.link = link;
+    }
+
+    public UserOperation(Long id, String operation, boolean isActive, String link, int position) {
+        this.id = id;
+        this.operation = operation;
+        this.isActive = isActive;
+        this.link = link;
+        this.position = position;
     }
 
     public UserOperation() {
@@ -70,6 +80,14 @@ public class UserOperation {
         this.link = link;
     }
 
+    public Integer getPosition() {
+        return position;
+    }
+
+    public void setPosition(Integer position) {
+        this.position = position;
+    }
+
     @Override
     public String toString() {
         return "UserOperation{" +
@@ -77,6 +95,7 @@ public class UserOperation {
                 ", operation='" + operation + '\'' +
                 ", isActive=" + isActive +
                 ", link='" + link + '\'' +
+                ", position=" + position +
                 '}';
     }
 }

@@ -47,7 +47,7 @@ public class JWTService {
                 .add(claims)
                 .subject(username) // from here you are setting these different claims
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + 60 * 1000 * 2 )) // 2 minutes
+                .expiration(new Date(System.currentTimeMillis() + 60 * 1000 * 10 )) // 2 minutes
                 .and()
                 .signWith(getKey()) // sign token using key to ensure that it has not been changed
                 .compact();
