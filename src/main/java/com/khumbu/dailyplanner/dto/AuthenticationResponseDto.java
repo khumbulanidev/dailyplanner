@@ -4,21 +4,30 @@ package com.khumbu.dailyplanner.dto;
 import com.khumbu.dailyplanner.models.RefreshToken;
 
 public class AuthenticationResponseDto {
+    private String fullName;
 
-    private java.lang.String email;
-    private java.lang.String string;
+    private String email;
+    private String token;
     private RefreshToken refreshToken;
     private long tokenExpirationDate;
 
-    public AuthenticationResponseDto(String email, String string, long tokenExpirationDate) {
+    public AuthenticationResponseDto(String email, String token, long tokenExpirationDate) {
         this.email = email;
-        this.string = string;
+        this.token = token;
         this.tokenExpirationDate = tokenExpirationDate;
     }
 
-    public AuthenticationResponseDto(java.lang.String email, java.lang.String string, long tokenExpirationDate, RefreshToken refreshToken) {
+    public AuthenticationResponseDto(String fullName, String email, String token, RefreshToken refreshToken, long tokenExpirationDate) {
+        this.fullName = fullName;
         this.email = email;
-        this.string = string;
+        this.token = token;
+        this.refreshToken = refreshToken;
+        this.tokenExpirationDate = tokenExpirationDate;
+    }
+
+    public AuthenticationResponseDto(String email, String token, long tokenExpirationDate, RefreshToken refreshToken) {
+        this.email = email;
+        this.token = token;
         this.refreshToken = refreshToken;
         this.tokenExpirationDate = tokenExpirationDate;
     }
@@ -34,12 +43,12 @@ public class AuthenticationResponseDto {
         this.email = email;
     }
 
-    public java.lang.String getToken() {
-        return string;
+    public  String getToken() {
+        return token;
     }
 
-    public void setToken(java.lang.String string) {
-        this.string = string;
+    public void setToken( String string) {
+        this.token= string;
     }
 
     public long getTokenExpirationDate() {
@@ -58,11 +67,21 @@ public class AuthenticationResponseDto {
         this.refreshToken = refreshToken;
     }
 
+    public String getFullName() {
+        return fullName;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
+    }
+
     @Override
-    public java.lang.String toString() {
+    public String toString() {
         return "AuthenticationResponseDto{" +
-                "email='" + email + '\'' +
-                ", token='" + string + '\'' +
+                "fullName='" + fullName + '\'' +
+                ", email='" + email + '\'' +
+                ", token='" + token + '\'' +
+                ", refreshToken=" + refreshToken +
                 ", tokenExpirationDate=" + tokenExpirationDate +
                 '}';
     }

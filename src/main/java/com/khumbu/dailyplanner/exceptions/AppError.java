@@ -16,4 +16,5 @@ public class AppError {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyyMMdd hh:mm:ss")
     private LocalDateTime date;
     private HttpStatus statusCode;
+
 }

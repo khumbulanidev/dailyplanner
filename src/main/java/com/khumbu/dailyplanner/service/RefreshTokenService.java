@@ -39,7 +39,7 @@ public class RefreshTokenService {
 
 
         RefreshToken refactorToken = RefreshToken.builder().user(user).refreshToken(UUID.randomUUID().toString())
-                .expiryDate(Date.from(date.plusMinutes(5).atZone(ZoneId.systemDefault()).toInstant()))
+                .expiryDate(Date.from(date.plusMinutes(20).atZone(ZoneId.systemDefault()).toInstant()))
                 .build();
         return tokenRepository.save(refactorToken);
     }

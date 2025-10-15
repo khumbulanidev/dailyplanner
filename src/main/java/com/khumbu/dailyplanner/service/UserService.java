@@ -19,6 +19,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
@@ -131,6 +132,8 @@ public class UserService {
        if(authentication.isAuthenticated())
         {
             AuthenticationResponseDto authenticationResponseDto = new AuthenticationResponseDto();
+            Users user = userRepository.findById(userInfo.getEmail()).orElseThrow(()-> new DailyPlannerException("User with email "+ userInfo.getEmail() + " not found"));
+
             //set refresh token
             RefreshToken refreshToken = refreshTokenService.createRefreshToken(userInfo.getEmail());
             authenticationResponseDto.setEmail(userInfo.getEmail());
@@ -139,10 +142,12 @@ public class UserService {
             authenticationResponseDto.setToken(string);
             authenticationResponseDto.setTokenExpirationDate(expirationDate.getTime());
             authenticationResponseDto.setRefreshToken(refreshToken);
+            authenticationResponseDto.setFullName(user.getFirstname() + " " + user.getLastname());
             responseDto.setHttpStatus(HttpStatus.OK);
             responseDto.setMessage("Success");
             responseDto.setToken(string);
             responseDto.setData(authenticationResponseDto);
+
 
             return responseDto;
         }
