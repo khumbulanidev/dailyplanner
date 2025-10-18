@@ -137,12 +137,13 @@ public class UserService {
             //set refresh token
             RefreshToken refreshToken = refreshTokenService.createRefreshToken(userInfo.getEmail());
             authenticationResponseDto.setEmail(userInfo.getEmail());
-            java.lang.String string = jwtService.generateToken(userInfo.getEmail());
+            String string = jwtService.generateToken(userInfo.getEmail());
             Date expirationDate = jwtService.extractExpiration(string);
             authenticationResponseDto.setToken(string);
             authenticationResponseDto.setTokenExpirationDate(expirationDate.getTime());
             authenticationResponseDto.setRefreshToken(refreshToken);
             authenticationResponseDto.setFullName(user.getFirstname() + " " + user.getLastname());
+            authenticationResponseDto.setRoles(refreshToken.getUser().getRoles());
             responseDto.setHttpStatus(HttpStatus.OK);
             responseDto.setMessage("Success");
             responseDto.setToken(string);

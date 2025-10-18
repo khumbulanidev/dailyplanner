@@ -16,6 +16,10 @@ public class Task {
     @Id
     private Long id;
 
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private Users user;
+
     //@JoinColumn points to the column used to map in the Day class
     @ManyToOne()
     @JoinColumn(name = "day_id", nullable=false)

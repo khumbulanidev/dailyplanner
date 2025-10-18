@@ -7,7 +7,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -38,6 +37,13 @@ public class TaskController {
         LOGGER.info("request {} ", authHeader);
         LOGGER.info("Inside getTasksForToday {}", date);
         return taskService.getTasksByDate(date);
+    }
+
+    @GetMapping("/today/{email}/{date}")
+    public List<TaskDto> getTasksByEmail(@PathVariable String date, @PathVariable String email, @RequestHeader("Authorization") String authHeader){
+        LOGGER.info("request {} ", authHeader);
+        LOGGER.info("Inside getTasksByEmail {}", date);
+        return taskService.getTasksByDateEmail(date, email);
     }
 
     @GetMapping("/date/{date}")
