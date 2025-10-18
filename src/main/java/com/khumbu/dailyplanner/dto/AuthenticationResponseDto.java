@@ -2,6 +2,9 @@ package com.khumbu.dailyplanner.dto;
 
 
 import com.khumbu.dailyplanner.models.RefreshToken;
+import com.khumbu.dailyplanner.models.Role;
+
+import java.util.List;
 
 public class AuthenticationResponseDto {
     private String fullName;
@@ -11,25 +14,31 @@ public class AuthenticationResponseDto {
     private RefreshToken refreshToken;
     private long tokenExpirationDate;
 
-    public AuthenticationResponseDto(String email, String token, long tokenExpirationDate) {
+
+    private List<Role> roles;
+
+    public AuthenticationResponseDto(String email, String token, long tokenExpirationDate, List<Role> roles) {
         this.email = email;
         this.token = token;
         this.tokenExpirationDate = tokenExpirationDate;
+        this.roles = roles;
     }
 
-    public AuthenticationResponseDto(String fullName, String email, String token, RefreshToken refreshToken, long tokenExpirationDate) {
+    public AuthenticationResponseDto(String fullName, String email, String token, RefreshToken refreshToken, long tokenExpirationDate, List<Role> roles) {
         this.fullName = fullName;
         this.email = email;
         this.token = token;
         this.refreshToken = refreshToken;
         this.tokenExpirationDate = tokenExpirationDate;
+        this.roles = roles;
     }
 
-    public AuthenticationResponseDto(String email, String token, long tokenExpirationDate, RefreshToken refreshToken) {
+    public AuthenticationResponseDto(String email, String token, long tokenExpirationDate, RefreshToken refreshToken, List<Role> roles) {
         this.email = email;
         this.token = token;
         this.refreshToken = refreshToken;
         this.tokenExpirationDate = tokenExpirationDate;
+        this.roles = roles;
     }
 
     public AuthenticationResponseDto() {
@@ -75,6 +84,14 @@ public class AuthenticationResponseDto {
         this.fullName = fullName;
     }
 
+    public List<Role> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(List<Role> roles) {
+        this.roles = roles;
+    }
+
     @Override
     public String toString() {
         return "AuthenticationResponseDto{" +
@@ -83,6 +100,7 @@ public class AuthenticationResponseDto {
                 ", token='" + token + '\'' +
                 ", refreshToken=" + refreshToken +
                 ", tokenExpirationDate=" + tokenExpirationDate +
+                ", roles=" + roles +
                 '}';
     }
 }
