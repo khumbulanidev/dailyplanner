@@ -4,6 +4,7 @@ import com.khumbu.dailyplanner.dto.ApiResponseDto;
 import com.khumbu.dailyplanner.dto.AuthenticationResponseDto;
 import com.khumbu.dailyplanner.dto.LoginDto;
 import com.khumbu.dailyplanner.dto.UserDto;
+import com.khumbu.dailyplanner.exceptions.DailyPlannerException;
 import com.khumbu.dailyplanner.exceptions.DayException;
 import com.khumbu.dailyplanner.models.RefreshToken;
 import com.khumbu.dailyplanner.models.Role;
@@ -18,6 +19,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
@@ -115,17 +117,6 @@ public class UserService {
         }
     }
 
-//    public String authenticate(UserDto userDto) {
-//
-//        //convert userdto to user
-//        Users user = generateUser(userDto);
-//        //authenticate the user
-//        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(user.getEmail(), user.getPassword()));
-//
-//        return authentication.isAuthenticated() ? "Success" : "Fail";
-//
-//    }
-
     public Users generateUser(UserDto userDto){
         Users user = new Users(userDto.getEmail(), userDto.getFirstname(), userDto.getLastname(), userDto.getPhone(), userDto.getPassword());
         return  user;
@@ -141,18 +132,23 @@ public class UserService {
        if(authentication.isAuthenticated())
         {
             AuthenticationResponseDto authenticationResponseDto = new AuthenticationResponseDto();
+            Users user = userRepository.findById(userInfo.getEmail()).orElseThrow(()-> new DailyPlannerException("User with email "+ userInfo.getEmail() + " not found"));
+
             //set refresh token
             RefreshToken refreshToken = refreshTokenService.createRefreshToken(userInfo.getEmail());
             authenticationResponseDto.setEmail(userInfo.getEmail());
-            java.lang.String string = jwtService.generateToken(userInfo.getEmail());
+            String string = jwtService.generateToken(userInfo.getEmail());
             Date expirationDate = jwtService.extractExpiration(string);
             authenticationResponseDto.setToken(string);
             authenticationResponseDto.setTokenExpirationDate(expirationDate.getTime());
             authenticationResponseDto.setRefreshToken(refreshToken);
+            authenticationResponseDto.setFullName(user.getFirstname() + " " + user.getLastname());
+            authenticationResponseDto.setRoles(refreshToken.getUser().getRoles());
             responseDto.setHttpStatus(HttpStatus.OK);
             responseDto.setMessage("Success");
             responseDto.setToken(string);
             responseDto.setData(authenticationResponseDto);
+
 
             return responseDto;
         }
@@ -163,5 +159,17 @@ public class UserService {
         LOGGER.info("End authenticate");
         return responseDto;
 
+    }
+
+    public String logout(String email) {
+
+        Users user = userRepository.findById(email).orElseThrow(()-> new DailyPlannerException("User with username "+ email + " was not found"));
+        Optional<RefreshToken> refreshTokenOptional = refreshTokenService.deleteByEmail(email);
+        if(refreshTokenOptional.isPresent()){
+            return "DELETED";
+        }
+        else{
+            return  "NO TOKEN FOUND";
+        }
     }
 }

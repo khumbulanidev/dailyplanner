@@ -1,12 +1,10 @@
 package com.khumbu.dailyplanner.service;
 
 import com.khumbu.dailyplanner.exceptions.DailyPlannerException;
-import com.khumbu.dailyplanner.models.Day;
-import com.khumbu.dailyplanner.models.DayDto;
-import com.khumbu.dailyplanner.models.Task;
-import com.khumbu.dailyplanner.models.TaskDto;
+import com.khumbu.dailyplanner.models.*;
 import com.khumbu.dailyplanner.repository.DayRepository;
 import com.khumbu.dailyplanner.repository.TaskRepository;
+import com.khumbu.dailyplanner.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +26,9 @@ public class TaskService {
     private DayRepository dayRepository;
     @Autowired
     private DayService dayService;
+
+    @Autowired
+    private UserRepository userRepository;
 
     public List<TaskDto> getTasksById(Long day_id){
         LOGGER.info("Inside getTasksById");
@@ -52,7 +53,7 @@ public class TaskService {
     public TaskDto saveTask(TaskDto taskDto) {
         LOGGER.info("Inside saveTask");
         Day day = dayRepository.findByDate(taskDto.getDate());
-        Optional<Task> existingTask = taskRepository.findByNameAndDay(taskDto.getName(),day) ;
+        Optional<Task> existingTask = taskRepository.findByNameAndDayAndUserEmail(taskDto.getName(),day, taskDto.getEmail()) ;
 
         if(existingTask.isPresent() && existingTask.get().getDay().getDate().equals(taskDto.getDate()) ){
          throw    new DailyPlannerException("Task with name "+ taskDto.getName() +" already exists for this date.");
@@ -70,7 +71,8 @@ public class TaskService {
         if(maxId == null){
             maxId=1L;
         }
-        Task task= Task.builder().id(maxId + 1).day(day).name(taskDto.getName()).isDone(taskDto.isDone()).duration(taskDto.getDuration()).quantity(taskDto.getQuantity()).comments(taskDto.getComments()).build();
+        Users user = userRepository.findById(taskDto.getEmail()).orElseThrow(()-> new DailyPlannerException("User with email "+ taskDto.getEmail() + " not found in the system."));
+        Task task= Task.builder().id(maxId + 1).day(day).name(taskDto.getName()).isDone(taskDto.isDone()).duration(taskDto.getDuration()).quantity(taskDto.getQuantity()).comments(taskDto.getComments()).user(user).build();
 
 
        Task savedTask = taskRepository.save(task);
@@ -199,5 +201,34 @@ public class TaskService {
             monthString = "0"+month;
         }
         return year+"-"+ monthString;
+    }
+
+    public List<TaskDto> getTasksByDateEmail(String date, String email) {
+        LOGGER.info("Inside getTasksByDateEmail");
+        Day today = dayRepository.findByDate(formatDate(date));
+        List<TaskDto> taskDtos = new ArrayList<>();
+        validateEmail(email);
+        if(today == null){
+            return taskDtos;
+        }
+        LOGGER.info("End getTasksForToday");
+        List<Task> tasks = taskRepository.getTasksByDayIdAndEmail(today.getId(), email);
+      taskDtos = tasks.stream().map(
+                task->TaskDto.builder().id(task.getId())
+                        .date(task.getDay().getDate())
+                        .dayId(task.getDay().getId())
+                        .name(task.getName())
+                        .isDone(task.isDone())
+                        .duration(task.getDuration())
+                        .quantity(task.getQuantity())
+                        .comments(task.getComments())
+                        .email(task.getUser().getEmail())
+                        .build()).toList();
+        return taskDtos;
+    }
+    private void validateEmail(String email){
+        if(email == null || email.isEmpty()){
+            throw new DailyPlannerException("Email cannot be empty, login and try again");
+        }
     }
 }

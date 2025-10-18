@@ -101,7 +101,6 @@ public class ApiResponseDto<T> {
         this.token = token;
     }
 
-
     @Override
     public String toString() {
         return "ApiResponseDto{" +
@@ -109,7 +108,7 @@ public class ApiResponseDto<T> {
                 ", message='" + message + '\'' +
                 ", httpStatus=" + httpStatus +
                 ", responseCode='" + responseCode + '\'' +
-                ", t=" + data +
+                ", data=" + data +
                 ", exception=" + exception +
                 ", token='" + token + '\'' +
                 '}';

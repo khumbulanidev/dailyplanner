@@ -21,5 +21,6 @@ public class TaskDto {
     private boolean isDone;
     private LocalDate date;
     private Long dayId;
+    private String email;
 
 }

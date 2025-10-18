@@ -2,25 +2,43 @@ package com.khumbu.dailyplanner.dto;
 
 
 import com.khumbu.dailyplanner.models.RefreshToken;
+import com.khumbu.dailyplanner.models.Role;
+
+import java.util.List;
 
 public class AuthenticationResponseDto {
+    private String fullName;
 
-    private java.lang.String email;
-    private java.lang.String string;
+    private String email;
+    private String token;
     private RefreshToken refreshToken;
     private long tokenExpirationDate;
 
-    public AuthenticationResponseDto(String email, String string, long tokenExpirationDate) {
+
+    private List<Role> roles;
+
+    public AuthenticationResponseDto(String email, String token, long tokenExpirationDate, List<Role> roles) {
         this.email = email;
-        this.string = string;
+        this.token = token;
         this.tokenExpirationDate = tokenExpirationDate;
+        this.roles = roles;
     }
 
-    public AuthenticationResponseDto(java.lang.String email, java.lang.String string, long tokenExpirationDate, RefreshToken refreshToken) {
+    public AuthenticationResponseDto(String fullName, String email, String token, RefreshToken refreshToken, long tokenExpirationDate, List<Role> roles) {
+        this.fullName = fullName;
         this.email = email;
-        this.string = string;
+        this.token = token;
         this.refreshToken = refreshToken;
         this.tokenExpirationDate = tokenExpirationDate;
+        this.roles = roles;
+    }
+
+    public AuthenticationResponseDto(String email, String token, long tokenExpirationDate, RefreshToken refreshToken, List<Role> roles) {
+        this.email = email;
+        this.token = token;
+        this.refreshToken = refreshToken;
+        this.tokenExpirationDate = tokenExpirationDate;
+        this.roles = roles;
     }
 
     public AuthenticationResponseDto() {
@@ -34,12 +52,12 @@ public class AuthenticationResponseDto {
         this.email = email;
     }
 
-    public java.lang.String getToken() {
-        return string;
+    public  String getToken() {
+        return token;
     }
 
-    public void setToken(java.lang.String string) {
-        this.string = string;
+    public void setToken( String string) {
+        this.token= string;
     }
 
     public long getTokenExpirationDate() {
@@ -58,12 +76,31 @@ public class AuthenticationResponseDto {
         this.refreshToken = refreshToken;
     }
 
+    public String getFullName() {
+        return fullName;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
+    }
+
+    public List<Role> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(List<Role> roles) {
+        this.roles = roles;
+    }
+
     @Override
-    public java.lang.String toString() {
+    public String toString() {
         return "AuthenticationResponseDto{" +
-                "email='" + email + '\'' +
-                ", token='" + string + '\'' +
+                "fullName='" + fullName + '\'' +
+                ", email='" + email + '\'' +
+                ", token='" + token + '\'' +
+                ", refreshToken=" + refreshToken +
                 ", tokenExpirationDate=" + tokenExpirationDate +
+                ", roles=" + roles +
                 '}';
     }
 }
