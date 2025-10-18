@@ -1,5 +1,6 @@
 package com.khumbu.dailyplanner.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;
@@ -13,6 +14,7 @@ public class Role{
 
     @Column(name = "role")
     private  String name;
+    @JsonIgnore
     @ManyToMany(mappedBy = "roles")
     List<Users> users = new ArrayList<>();
 

@@ -1,5 +1,6 @@
 package com.khumbu.dailyplanner.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -26,6 +27,9 @@ public class Users {
     @Column(name = "credential_expired")
     private boolean isCredentialExpired;
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<Task> tasks = new ArrayList<>();
 
     @ManyToMany
     @JoinTable(
@@ -57,6 +61,20 @@ public class Users {
         this.isLocked = isLocked;
         this.isDisabled = isDisabled;
         this.isCredentialExpired = isCredentialExpired;
+        this.roles = roles;
+    }
+
+    public Users(String email, String firstname, String lastname, String phone, String password, boolean isAccountExpired, boolean isLocked, boolean isDisabled, boolean isCredentialExpired, List<Task> tasks, List<Role> roles) {
+        this.email = email;
+        this.firstname = firstname;
+        this.lastname = lastname;
+        this.phone = phone;
+        this.password = password;
+        this.isAccountExpired = isAccountExpired;
+        this.isLocked = isLocked;
+        this.isDisabled = isDisabled;
+        this.isCredentialExpired = isCredentialExpired;
+        this.tasks = tasks;
         this.roles = roles;
     }
 
@@ -140,6 +158,15 @@ public class Users {
         this.roles = roles;
     }
 
+
+    public List<Task> getTasks() {
+        return tasks;
+    }
+
+    public void setTasks(List<Task> tasks) {
+        this.tasks = tasks;
+    }
+
     @Override
     public String toString() {
         return "Users{" +
@@ -147,10 +174,13 @@ public class Users {
                 ", firstname='" + firstname + '\'' +
                 ", lastname='" + lastname + '\'' +
                 ", phone='" + phone + '\'' +
+                ", password='" + password + '\'' +
                 ", isAccountExpired=" + isAccountExpired +
                 ", isLocked=" + isLocked +
                 ", isDisabled=" + isDisabled +
                 ", isCredentialExpired=" + isCredentialExpired +
+                ", tasks=" + tasks +
+                ", roles=" + roles +
                 '}';
     }
 }
