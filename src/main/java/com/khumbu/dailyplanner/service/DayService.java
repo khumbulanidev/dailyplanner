@@ -1,11 +1,14 @@
 package com.khumbu.dailyplanner.service;
 
+import com.khumbu.dailyplanner.dto.DayTaskDto;
 import com.khumbu.dailyplanner.exceptions.DailyPlannerException;
 import com.khumbu.dailyplanner.exceptions.DayException;
 import com.khumbu.dailyplanner.models.Day;
 import com.khumbu.dailyplanner.models.DayDto;
+import com.khumbu.dailyplanner.models.Task;
 import com.khumbu.dailyplanner.models.TaskDto;
 import com.khumbu.dailyplanner.repository.DayRepository;
+import com.khumbu.dailyplanner.repository.TaskRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,8 +17,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -25,7 +30,9 @@ public class DayService {
 
     @Autowired
     private DayRepository dayRepository;
-    //todo add logging
+
+    @Autowired
+    private TaskRepository taskRepository;
 
     public DayDto save(DayDto dayDto){
 
@@ -77,7 +84,6 @@ public class DayService {
         return dayDto;
     }
 
-    //day contains a list of tasks
     public List<Day> getDaysOfTheMonth(Long month, Long year) {
         String yearMonth = formatDate( month,  year);
 
@@ -88,14 +94,25 @@ public class DayService {
 
     }
 
-
-
-
     private String formatDate(Long month, Long year){
         String monthString = month+"";
         if(month < 10){
             monthString = "0"+month;
         }
         return year+"-"+ monthString;
+    }
+
+    public List<DayTaskDto> getDaysOfTheMonthForUser(Long month, Long year, String email) {
+       List<Day> days =  getDaysOfTheMonth(month, year);
+        List<DayTaskDto> taskDtos = new ArrayList<>();
+        for(Day day :days){
+           List<Task> tasksForUser = day.getTasks().stream().filter(t -> t.getUser().getEmail().equals(email)).toList();
+            DayTaskDto dayTaskDto = new DayTaskDto();
+            int dayValue = day.getDate().getDayOfMonth();
+            dayTaskDto.setDay(dayValue);
+            dayTaskDto.setNumberOfTasks(tasksForUser.size());
+            taskDtos.add(dayTaskDto);
+        }
+        return taskDtos;
     }
 }
