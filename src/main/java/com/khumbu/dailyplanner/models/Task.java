@@ -4,6 +4,7 @@ package com.khumbu.dailyplanner.models;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
+import java.time.LocalTime;
 
 @Entity
 @Getter
@@ -30,4 +31,6 @@ public class Task {
     private String comments;
     private int quantity;
     private boolean isDone;
+    private LocalTime startTime;
+    private LocalTime endTime;
 }

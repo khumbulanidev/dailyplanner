@@ -11,15 +11,20 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import static com.khumbu.dailyplanner.constants.DailyPlannerConstants.*;
 
 @Service
 @Slf4j
 public class TaskService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskService.class);
+
+
     @Autowired
     private TaskRepository taskRepository;
     @Autowired
@@ -43,6 +48,8 @@ public class TaskService {
                         .duration(task.getDuration())
                         .quantity(task.getQuantity())
                         .comments(task.getComments())
+                        .startTime(task.getStartTime() == null ? UNSET_TIME: task.getStartTime().toString())
+                        .endTime(task.getEndTime() == null ? UNSET_TIME : task.getEndTime().toString())
                         .build()).toList();
         LOGGER.info("End getTasksById");
         return taskDtos;
@@ -72,12 +79,69 @@ public class TaskService {
             maxId=1L;
         }
         Users user = userRepository.findById(taskDto.getEmail()).orElseThrow(()-> new DailyPlannerException("User with email "+ taskDto.getEmail() + " not found in the system."));
-        Task task= Task.builder().id(maxId + 1).day(day).name(taskDto.getName()).isDone(taskDto.isDone()).duration(taskDto.getDuration()).quantity(taskDto.getQuantity()).comments(taskDto.getComments()).user(user).build();
+        validateTime(taskDto);
+        Task task= Task.builder().id(maxId + 1).day(day).name(taskDto.getName()).isDone(taskDto.isDone()).duration(taskDto.getDuration()).quantity(taskDto.getQuantity()).comments(taskDto.getComments()).user(user).startTime(constructTime(taskDto.getStartTime())).endTime(constructTime(taskDto.getEndTime())).build();
 
 
        Task savedTask = taskRepository.save(task);
         LOGGER.info("End saveTask");
-       return TaskDto.builder().dayId(savedTask.getId()).date(savedTask.getDay().getDate()).name(savedTask.getName()).id(savedTask.getId()).isDone(savedTask.isDone()).comments(savedTask.getComments()).duration(savedTask.getDuration()).build();
+       return TaskDto.builder().dayId(savedTask.getId()).date(savedTask.getDay().getDate()).name(savedTask.getName()).id(savedTask.getId()).isDone(savedTask.isDone()).comments(savedTask.getComments()).duration(savedTask.getDuration()).startTime(savedTask.getStartTime() == null ? "--:--" : savedTask.getStartTime().toString()).endTime(savedTask.getEndTime() == null ? "--:--" : savedTask.getEndTime().toString()).build();
+    }
+
+    private LocalTime constructTime(String time){
+
+        if(time == null || time.equals("0")){
+            return null;
+        }else{
+            return LocalTime.parse(time);
+        }
+    }
+
+    /***
+     * Checks if time is valid
+     * Checks for time overlaps
+     * Exception thrown if time is not valid
+     * @param taskDto
+     */
+    private void validateTime(TaskDto taskDto){
+        if( !taskDto.getStartTime().equals("0") && taskDto.getStartTime().equals(taskDto.getEndTime())){
+            throw new DailyPlannerException(SAME_START_END_TIME);
+        }
+        if(!taskDto.getStartTime().equals("0") && taskDto.getStartTime() != null && taskDto.getEndTime() != null){
+            LocalTime sTime = LocalTime.parse(taskDto.getStartTime());
+            LocalTime eTime = LocalTime.parse(taskDto.getEndTime());
+            if(eTime.isBefore(sTime)){
+                throw new DailyPlannerException(START_TIME_AFTER_END_TIME);
+            }
+            validateTimeOverlap(sTime, eTime, taskDto);
+        }
+        if(taskDto.getStartTime() != null && taskDto.getEndTime() == null || (taskDto.getStartTime() == null && taskDto.getEndTime() != null)){
+            throw new DailyPlannerException(BOTH_START_END_TIME_REQUIRED);
+        }
+    }
+
+    /***
+     *
+     * @param sTime Start time
+     * @param eTime End time
+     * @param taskDto
+     */
+    private void validateTimeOverlap(LocalTime sTime, LocalTime eTime, TaskDto taskDto){
+        Day day = dayRepository.findByDate(taskDto.getDate());
+        List<Task> userTasksForToday = taskRepository.getTasksByDayIdAndEmail(day.getId(), taskDto.getEmail());
+        List<Task> overlappingTasks = userTasksForToday.stream().filter(a->{
+            if(a.getStartTime() == null || a.getEndTime() == null){
+                return false;
+            }
+            if( (sTime.isAfter(a.getStartTime()) && sTime.isBefore(a.getEndTime())) || (eTime.isAfter(a.getStartTime()) && eTime.isBefore(a.getEndTime()))){
+                return true;
+            }
+            return  false;
+        }).toList();
+
+        if(overlappingTasks.size() > 0){
+            throw new DailyPlannerException(TIME_OVERLAPS);
+        }
     }
 
     public List<TaskDto> getTasksForToday() {
@@ -133,6 +197,8 @@ public class TaskService {
                 .date(task.getDay().getDate())
                 .duration(task.getDuration())
                 .comments(task.getComments())
+                .startTime(task.getStartTime() == null ? UNSET_TIME : task.getStartTime().toString())
+                .endTime(task.getEndTime() == null ? UNSET_TIME : task.getEndTime().toString())
                 .build();
     }
 
@@ -143,10 +209,14 @@ public class TaskService {
                 .id(task.getId())
                 .name(task.getName())
                 .isDone(task.isDone())
+                .startTime(task.getStartTime().toString())
+                .endTime(task.getEndTime().toString())
                 .quantity(task.getQuantity())
                 .date(task.getDay().getDate())
                 .duration(task.getDuration())
                 .comments(task.getComments())
+                .startTime(task.getStartTime() == null ? UNSET_TIME : task.getStartTime().toString())
+                .endTime(task.getEndTime() == null ? UNSET_TIME : task.getEndTime().toString())
                 .build();
     }
 
@@ -171,6 +241,8 @@ public class TaskService {
         task.setDone(taskDto.isDone());
         task.setComments(taskDto.getComments());
         task.setDuration(taskDto.getDuration());
+        task.setStartTime(constructTime(taskDto.getStartTime()));
+        task.setEndTime(constructTime(taskDto.getEndTime()));
 
 
         Task savedTask = taskRepository.save(task);
@@ -182,16 +254,15 @@ public class TaskService {
                 .date(savedTask.getDay().getDate())
                 .duration(savedTask.getDuration())
                 .comments(savedTask.getComments())
+                .startTime(task.getStartTime() == null ? UNSET_TIME : task.getStartTime().toString())
+                .endTime(task.getEndTime() == null ? UNSET_TIME : task.getEndTime().toString())
                 .build();
     }
 
     public List<TaskDto> getTasksForTheMonth(Long month, Long year) {
         String yearMonth = formatDate( month,  year);
-
-        //get the ids of all the days in month and year
         List<Day> dayList = dayRepository.findByMonthAndYear(yearMonth);
         return new ArrayList<TaskDto>();
-
 
     }
 
@@ -223,12 +294,14 @@ public class TaskService {
                         .quantity(task.getQuantity())
                         .comments(task.getComments())
                         .email(task.getUser().getEmail())
+                        .startTime(task.getStartTime() == null ? UNSET_TIME : task.getStartTime().toString())
+                        .endTime(task.getEndTime() == null ? UNSET_TIME : task.getEndTime().toString())
                         .build()).toList();
         return taskDtos;
     }
     private void validateEmail(String email){
         if(email == null || email.isEmpty()){
-            throw new DailyPlannerException("Email cannot be empty, login and try again");
+            throw new DailyPlannerException(NO_EMAIL);
         }
     }
 }

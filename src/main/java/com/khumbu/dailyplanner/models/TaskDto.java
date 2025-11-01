@@ -1,7 +1,6 @@
 package com.khumbu.dailyplanner.models;
 
 import lombok.*;
-
 import java.time.LocalDate;
 
 @Data
@@ -22,5 +21,7 @@ public class TaskDto {
     private LocalDate date;
     private Long dayId;
     private String email;
+    private String startTime;
+    private String endTime;
 
 }
