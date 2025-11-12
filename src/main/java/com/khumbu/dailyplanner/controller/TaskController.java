@@ -70,6 +70,12 @@ public class TaskController {
     public ResponseEntity<TaskDto> deleteTask(@PathVariable Long taskId){
         return ResponseEntity.ok(this.taskService.deleteTaskById(taskId));
     }
+
+    @DeleteMapping("/delete-tasks")
+    public ResponseEntity<List<TaskDto>> deleteTasks(@RequestBody  List<Long> taskIds){
+        return ResponseEntity.ok(this.taskService.deleteTasksByIds(taskIds));
+    }
+
     @GetMapping("/month/{month}/{year}")
     public ResponseEntity<List<TaskDto>> getTasksForTheMonth(@PathVariable Long month, @PathVariable Long year){
         return ResponseEntity.ok(taskService.getTasksForTheMonth(month, year));

@@ -90,7 +90,7 @@ public class TaskService {
 
     private LocalTime constructTime(String time){
 
-        if(time == null || time.equals("0")){
+        if(time == null || time.equals("0") || time.equals(UNSET_TIME)){
             return null;
         }else{
             return LocalTime.parse(time);
@@ -303,5 +303,27 @@ public class TaskService {
         if(email == null || email.isEmpty()){
             throw new DailyPlannerException(NO_EMAIL);
         }
+    }
+
+    public List<TaskDto> deleteTasksByIds(List<Long> taskIds) {
+        List<Task> tasksToDelete = taskRepository.findAllById(taskIds);
+        taskRepository.deleteAllById(taskIds);
+        return  constructTaskDtos(tasksToDelete);
+    }
+
+    private List<TaskDto> constructTaskDtos(List<Task> tasks){
+      return  tasks.stream().map(
+                task->TaskDto.builder().id(task.getId())
+                        .date(task.getDay().getDate())
+                        .dayId(task.getDay().getId())
+                        .name(task.getName())
+                        .isDone(task.isDone())
+                        .duration(task.getDuration())
+                        .quantity(task.getQuantity())
+                        .comments(task.getComments())
+                        .email(task.getUser().getEmail())
+                        .startTime(task.getStartTime() == null ? UNSET_TIME : task.getStartTime().toString())
+                        .endTime(task.getEndTime() == null ? UNSET_TIME : task.getEndTime().toString())
+                        .build()).toList();
     }
 }

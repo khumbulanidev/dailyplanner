@@ -23,10 +23,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.security.sasl.AuthenticationException;
 import java.io.IOException;
-import java.util.logging.LogManager;
 
 @Component
-
 public class JwtFilter  extends OncePerRequestFilter {
 
     private Logger LOGGER = LoggerFactory.getLogger(JwtFilter.class);
