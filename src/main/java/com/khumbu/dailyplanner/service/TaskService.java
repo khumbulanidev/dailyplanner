@@ -90,7 +90,7 @@ public class TaskService {
 
     private LocalTime constructTime(String time){
 
-        if(time == null || time.equals("0")){
+        if(time == null || time.equals("0") || time.equals(UNSET_TIME)){
             return null;
         }else{
             return LocalTime.parse(time);
