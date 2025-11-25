@@ -209,8 +209,6 @@ public class TaskService {
                 .id(task.getId())
                 .name(task.getName())
                 .isDone(task.isDone())
-                .startTime(task.getStartTime().toString())
-                .endTime(task.getEndTime().toString())
                 .quantity(task.getQuantity())
                 .date(task.getDay().getDate())
                 .duration(task.getDuration())
