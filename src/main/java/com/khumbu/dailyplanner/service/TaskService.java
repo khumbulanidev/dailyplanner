@@ -15,6 +15,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static com.khumbu.dailyplanner.constants.DailyPlannerConstants.END_TASK_FOR_TODAY;
+
 @Service
 @Slf4j
 public class TaskService {
@@ -43,6 +45,8 @@ public class TaskService {
                         .duration(task.getDuration())
                         .quantity(task.getQuantity())
                         .comments(task.getComments())
+                        .startTime(task.getStartTime())
+                        .endTime(task.getEndTime())
                         .build()).toList();
         LOGGER.info("End getTasksById");
         return taskDtos;
@@ -72,12 +76,12 @@ public class TaskService {
             maxId=1L;
         }
         Users user = userRepository.findById(taskDto.getEmail()).orElseThrow(()-> new DailyPlannerException("User with email "+ taskDto.getEmail() + " not found in the system."));
-        Task task= Task.builder().id(maxId + 1).day(day).name(taskDto.getName()).isDone(taskDto.isDone()).duration(taskDto.getDuration()).quantity(taskDto.getQuantity()).comments(taskDto.getComments()).user(user).build();
+        Task task= Task.builder().id(maxId + 1).day(day).name(taskDto.getName()).isDone(taskDto.isDone()).duration(taskDto.getDuration()).quantity(taskDto.getQuantity()).comments(taskDto.getComments()).startTime(taskDto.getStartTime()).endTime(taskDto.getEndTime()).user(user).build();
 
 
        Task savedTask = taskRepository.save(task);
         LOGGER.info("End saveTask");
-       return TaskDto.builder().dayId(savedTask.getId()).date(savedTask.getDay().getDate()).name(savedTask.getName()).id(savedTask.getId()).isDone(savedTask.isDone()).comments(savedTask.getComments()).duration(savedTask.getDuration()).build();
+       return TaskDto.builder().dayId(savedTask.getId()).date(savedTask.getDay().getDate()).name(savedTask.getName()).id(savedTask.getId()).isDone(savedTask.isDone()).comments(savedTask.getComments()).duration(savedTask.getDuration()).startTime(savedTask.getStartTime()).endTime(savedTask.getEndTime()).build();
     }
 
     public List<TaskDto> getTasksForToday() {
@@ -89,7 +93,7 @@ public class TaskService {
         if(today == null){
             return taskDtos;
         }
-        LOGGER.info("End getTasksForToday");
+        LOGGER.info(END_TASK_FOR_TODAY);
         return getTasksById(today.getId());
     }
 
@@ -102,7 +106,7 @@ public class TaskService {
         if(today == null){
             return taskDtos;
         }
-        LOGGER.info("End getTasksForToday");
+        LOGGER.info(END_TASK_FOR_TODAY);
         return getTasksById(today.getId());
 
     }
@@ -133,6 +137,8 @@ public class TaskService {
                 .date(task.getDay().getDate())
                 .duration(task.getDuration())
                 .comments(task.getComments())
+                .startTime(task.getStartTime())
+                .endTime(task.getEndTime())
                 .build();
     }
 
@@ -147,6 +153,8 @@ public class TaskService {
                 .date(task.getDay().getDate())
                 .duration(task.getDuration())
                 .comments(task.getComments())
+                .startTime(task.getStartTime())
+                .endTime(task.getEndTime())
                 .build();
     }
 
@@ -171,6 +179,8 @@ public class TaskService {
         task.setDone(taskDto.isDone());
         task.setComments(taskDto.getComments());
         task.setDuration(taskDto.getDuration());
+        task.setStartTime(taskDto.getStartTime());
+        task.setEndTime(taskDto.getEndTime());
 
 
         Task savedTask = taskRepository.save(task);
@@ -182,6 +192,8 @@ public class TaskService {
                 .date(savedTask.getDay().getDate())
                 .duration(savedTask.getDuration())
                 .comments(savedTask.getComments())
+                .startTime(savedTask.getStartTime())
+                .endTime(savedTask.getEndTime())
                 .build();
     }
 
@@ -223,6 +235,8 @@ public class TaskService {
                         .quantity(task.getQuantity())
                         .comments(task.getComments())
                         .email(task.getUser().getEmail())
+                        .startTime(task.getStartTime())
+                        .endTime(task.getEndTime())
                         .build()).toList();
         return taskDtos;
     }
