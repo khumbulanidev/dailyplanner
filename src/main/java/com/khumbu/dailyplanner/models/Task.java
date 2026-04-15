@@ -15,6 +15,7 @@ import java.time.LocalTime;
 public class Task {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
