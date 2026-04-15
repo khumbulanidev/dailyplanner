@@ -1,5 +1,6 @@
 package com.khumbu.dailyplanner.models;
 
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -14,6 +15,7 @@ import java.util.List;
 @Builder
 public class Day {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private LocalDate date;
     // @OneToMany is used to define the property in the task class used to map the mappedBy variable
