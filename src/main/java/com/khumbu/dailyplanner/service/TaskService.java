@@ -104,6 +104,9 @@ public class TaskService {
      * @param taskDto
      */
     private void validateTime(TaskDto taskDto){
+        if(taskDto.getStartTime() == null ||  taskDto.getEndTime() == null){
+            return;
+        }
         if( !taskDto.getStartTime().equals("0") && taskDto.getStartTime().equals(taskDto.getEndTime())){
             throw new DailyPlannerException(SAME_START_END_TIME);
         }
@@ -325,5 +328,45 @@ public class TaskService {
                         .startTime(task.getStartTime() == null ? UNSET_TIME : task.getStartTime().toString())
                         .endTime(task.getEndTime() == null ? UNSET_TIME : task.getEndTime().toString())
                         .build()).toList();
+    }
+
+    public DailyTasksDto saveAll(DailyTasksDto dailyTasksDto) {
+
+        List<Task> tasks = new ArrayList<>();
+        List<Task> savedTasks = new ArrayList<>();
+        List<TaskDto> savedDtos = new ArrayList<>();
+        TaskDto firstTask = dailyTasksDto.getTasks().get(0);
+        Optional<Users> optionalUser = userRepository.findByEmail(firstTask.getEmail());
+       if(optionalUser.isPresent())
+       {
+          Users user =  optionalUser.get();
+           LocalDate startDate = dailyTasksDto.getStartDate();
+           LocalDate endDate = dailyTasksDto.getEndDate();
+           startDate.datesUntil(endDate.plusDays(1)).forEach( date->{
+                       Day startDay = dayRepository.findByDate(date);
+                       Day newDay = new Day();
+                       if(startDay == null){
+                           newDay.setDate(date);
+                           startDay = dayRepository.save(newDay);
+                       }
+                       for(TaskDto taskDto : dailyTasksDto.getTasks()){
+                           taskDto.setDate(date);
+                           taskDto.setDayId(startDay.getId());
+                           savedDtos.add(saveTask(taskDto));
+                       }
+                   }
+           );
+           List<TaskDto> savedTaskDtos = constructTaskDtos(savedTasks);
+           DailyTasksDto savedDailyTasksDto = new DailyTasksDto();
+           savedDailyTasksDto.setStartDate(dailyTasksDto.getStartDate());
+           savedDailyTasksDto.setEndDate(dailyTasksDto.getEndDate());
+           savedDailyTasksDto.setTasks(savedDtos);
+
+           return savedDailyTasksDto;
+       }
+       else{
+           throw new DailyPlannerException("User not found in system " + firstTask.getEmail());
+       }
+
     }
 }
