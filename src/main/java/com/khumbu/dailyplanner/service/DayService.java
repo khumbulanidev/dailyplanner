@@ -20,7 +20,6 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -37,7 +36,6 @@ public class DayService {
     public DayDto save(DayDto dayDto){
 
         if(ObjectUtils.isEmpty(dayDto)){
-
             throw new DayException("DayDto cannot be empty");
         }
         Day day = dayRepository.findByDate(dayDto.getDate());
@@ -47,7 +45,7 @@ public class DayService {
         }
 
         //find maximum id
-        Long maxId=dayRepository.findMaxId();
+        Long maxId = dayRepository.findMaxId();
          if(maxId == null)
          {
              maxId = 0L;
@@ -62,7 +60,7 @@ public class DayService {
     }
 
     public DayDto deleteById(Long id) {
-        Optional<Day> dayOptional=dayRepository.findById(id);
+        Optional<Day> dayOptional = dayRepository.findById(id);
         if(dayOptional.isPresent()){
             dayRepository.deleteById(id);
             return DayDto.create(dayOptional.get());

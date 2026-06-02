@@ -332,6 +332,10 @@ public class TaskService {
 
     public DailyTasksDto saveAll(DailyTasksDto dailyTasksDto) {
 
+        if(dailyTasksDto.getTasks().size() == 0){
+            throw new DailyPlannerException("No tasks to save");
+        }
+
         List<Task> tasks = new ArrayList<>();
         List<Task> savedTasks = new ArrayList<>();
         List<TaskDto> savedDtos = new ArrayList<>();
