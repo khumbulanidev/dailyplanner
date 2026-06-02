@@ -1,5 +1,6 @@
 package com.khumbu.dailyplanner.models;
 
+import com.khumbu.dailyplanner.exceptions.DailyPlannerException;
 import com.khumbu.dailyplanner.exceptions.DayException;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -27,9 +28,10 @@ public class DayDto {
     }
 
     public static List<DayDto> createList(List<Day> dayList){
-
-        List<DayDto> dayDtoList= dayList.stream().map(DayDto::create).toList();
-        return dayDtoList;
+        if(dayList == null){
+            throw new DailyPlannerException("dayList cannot be null");
+        }
+        return dayList.stream().map(DayDto::create).toList();
     }
 
     public Day getDay(){
