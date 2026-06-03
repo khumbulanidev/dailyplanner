@@ -24,7 +24,6 @@ public class TaskService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskService.class);
 
-
     @Autowired
     private TaskRepository taskRepository;
     @Autowired
@@ -56,7 +55,6 @@ public class TaskService {
 
     }
 
-
     public TaskDto saveTask(TaskDto taskDto) {
         LOGGER.info("Inside saveTask");
         Day day = dayRepository.findByDate(taskDto.getDate());
@@ -69,21 +67,21 @@ public class TaskService {
         if(day == null){
             day = new Day();
             day.setDate(taskDto.getDate());
-            Long nextId = dayRepository.findMaxId() + 1;
+            Long maxId = dayRepository.findMaxId();
+            Long nextId = maxId == null ? 1L : maxId + 1;
             day.setId(nextId);
             dayRepository.save(day);
         }
 
         Long maxId = taskRepository.findMaxId();
         if(maxId == null){
-            maxId=1L;
+            maxId = 1L;
         }
         Users user = userRepository.findById(taskDto.getEmail()).orElseThrow(()-> new DailyPlannerException("User with email "+ taskDto.getEmail() + " not found in the system."));
         validateTime(taskDto);
         Task task= Task.builder().id(maxId + 1).day(day).name(taskDto.getName()).isDone(taskDto.isDone()).duration(taskDto.getDuration()).quantity(taskDto.getQuantity()).comments(taskDto.getComments()).user(user).startTime(constructTime(taskDto.getStartTime())).endTime(constructTime(taskDto.getEndTime())).build();
 
-
-       Task savedTask = taskRepository.save(task);
+        Task savedTask = taskRepository.save(task);
         LOGGER.info("End saveTask");
        return TaskDto.builder().dayId(savedTask.getId()).date(savedTask.getDay().getDate()).name(savedTask.getName()).id(savedTask.getId()).isDone(savedTask.isDone()).comments(savedTask.getComments()).duration(savedTask.getDuration()).startTime(savedTask.getStartTime() == null ? "--:--" : savedTask.getStartTime().toString()).endTime(savedTask.getEndTime() == null ? "--:--" : savedTask.getEndTime().toString()).build();
     }
@@ -212,15 +210,19 @@ public class TaskService {
                 .id(task.getId())
                 .name(task.getName())
                 .isDone(task.isDone())
-                .startTime(task.getStartTime().toString())
-                .endTime(task.getEndTime().toString())
+                .startTime(setTime(task.getStartTime()))
+                .endTime(setTime(task.getEndTime()))
                 .quantity(task.getQuantity())
                 .date(task.getDay().getDate())
                 .duration(task.getDuration())
                 .comments(task.getComments())
-                .startTime(task.getStartTime() == null ? UNSET_TIME : task.getStartTime().toString())
-                .endTime(task.getEndTime() == null ? UNSET_TIME : task.getEndTime().toString())
+                .startTime(setTime(task.getStartTime()))
+                .endTime(setTime(task.getEndTime()))
                 .build();
+    }
+
+    private String setTime(LocalTime time){
+        return time == null ? UNSET_TIME : time.toString();
     }
 
     public TaskDto updateTask(TaskDto taskDto) {
@@ -229,7 +231,6 @@ public class TaskService {
           ()-> new DailyPlannerException("Task with id "+ taskDto.getId() + " not found.")
         );
       Day day = dayRepository.findByDate(taskDto.getDate());
-
 
        if(day == null){
            day = new Day();
@@ -246,7 +247,6 @@ public class TaskService {
         task.setDuration(taskDto.getDuration());
         task.setStartTime(constructTime(taskDto.getStartTime()));
         task.setEndTime(constructTime(taskDto.getEndTime()));
-
 
         Task savedTask = taskRepository.save(task);
         return TaskDto.builder()
@@ -336,7 +336,6 @@ public class TaskService {
             throw new DailyPlannerException("No tasks to save");
         }
 
-        List<Task> tasks = new ArrayList<>();
         List<Task> savedTasks = new ArrayList<>();
         List<TaskDto> savedDtos = new ArrayList<>();
         TaskDto firstTask = dailyTasksDto.getTasks().get(0);
