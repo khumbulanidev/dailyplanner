@@ -40,7 +40,7 @@ public class DayService {
         }
         Day day = dayRepository.findByDate(dayDto.getDate());
         if (day != null){
-            logger.error(" inside exception if ");
+            logger.error(" inside exception if  Day already exists {}",day.getDate());
             return null;
         }
 
@@ -73,9 +73,9 @@ public class DayService {
 
         if(day == null){
             Long maxId = this.dayRepository.findMaxId() + 1;
-            Day day1 = new Day();
-            day1.setDate(date);
-            day = this.dayRepository.save(day1);
+            Day dayToSave = new Day();
+            dayToSave.setDate(date);
+            day = this.dayRepository.save(dayToSave);
         }
         DayDto dayDto = DayDto.create(day);
 
@@ -86,7 +86,7 @@ public class DayService {
         String yearMonth = formatDate( month,  year);
 
         //get the ids of all the days in month and year
-        List<Day> dayList = dayRepository.findByMonthAndYear(yearMonth);
+        List<Day> dayList = dayRepository.findByMonthAndYear(month, year);
         return dayList;
 
 

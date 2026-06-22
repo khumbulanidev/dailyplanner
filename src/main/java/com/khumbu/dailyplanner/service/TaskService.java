@@ -67,9 +67,6 @@ public class TaskService {
         if(day == null){
             day = new Day();
             day.setDate(taskDto.getDate());
-            Long maxId = dayRepository.findMaxId();
-            Long nextId = maxId == null ? 1L : maxId + 1;
-            day.setId(nextId);
             dayRepository.save(day);
         }
 
@@ -264,7 +261,7 @@ public class TaskService {
 
     public List<TaskDto> getTasksForTheMonth(Long month, Long year) {
         String yearMonth = formatDate( month,  year);
-        List<Day> dayList = dayRepository.findByMonthAndYear(yearMonth);
+        List<Day> dayList = dayRepository.findByMonthAndYear(month, year);
         return new ArrayList<TaskDto>();
 
     }
@@ -330,6 +327,37 @@ public class TaskService {
                         .build()).toList();
     }
 
+    private List<Task> constructTasksFromDto(List<TaskDto> taskDtos){
+
+       return taskDtos.stream().map(dto -> {
+                    Day day = dayRepository.findById(dto.getDayId()).get();
+                    Users user = userRepository.findByEmail(dto.getEmail()).get();
+
+                    if (day == null) {
+                        throw new DailyPlannerException("Day not found");
+                    }
+
+                    if (user == null) {
+                        throw new DailyPlannerException("User not found");
+                    }
+                 return   Task.builder()
+                            .id(null)
+                            .day(day)
+                            .name(dto.getName())
+                            .isDone(dto.isDone())
+                            .duration(dto.getDuration())
+                            .quantity(dto.getQuantity())
+                            .comments(dto.getComments())
+                            .user(user)
+                            .startTime(constructTime(dto.getStartTime()))
+                            .endTime(constructTime(dto.getEndTime()))
+                            .build();
+
+                }
+                ).toList();
+
+    }
+
     public DailyTasksDto saveAll(DailyTasksDto dailyTasksDto) {
 
         if(dailyTasksDto.getTasks().size() == 0){
@@ -352,10 +380,13 @@ public class TaskService {
                            newDay.setDate(date);
                            startDay = dayRepository.save(newDay);
                        }
+
+               //build task from task dto
+                       //taskRepository.saveAll(constructTasksFromDto(dailyTasksDto.getTasks()));
                        for(TaskDto taskDto : dailyTasksDto.getTasks()){
                            taskDto.setDate(date);
                            taskDto.setDayId(startDay.getId());
-                           savedDtos.add(saveTask(taskDto));
+                           savedDtos.add(saveTask(taskDto)); //task is being saved here
                        }
                    }
            );
