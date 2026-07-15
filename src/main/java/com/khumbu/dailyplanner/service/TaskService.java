@@ -10,6 +10,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -357,7 +359,7 @@ public class TaskService {
                 ).toList();
 
     }
-
+@Transactional
     public DailyTasksDto saveAll(DailyTasksDto dailyTasksDto) {
 
         if(dailyTasksDto.getTasks().size() == 0){

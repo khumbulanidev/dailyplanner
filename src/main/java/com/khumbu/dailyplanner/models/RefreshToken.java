@@ -20,7 +20,7 @@ public class RefreshToken {
     private String refreshToken;
     private Date expiryDate;
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.PERSIST)
     @JoinColumn(name = "email", referencedColumnName = "email")
     private Users user;
 }

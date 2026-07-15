@@ -18,6 +18,8 @@ public class UserOperation {
 
     private int position;
 
+    private boolean admin;
+
 
     public UserOperation(Long id, String operation, boolean isActive, String link) {
         this.id = id;
@@ -32,6 +34,15 @@ public class UserOperation {
         this.isActive = isActive;
         this.link = link;
         this.position = position;
+    }
+
+    public UserOperation(Long id, String operation, boolean isActive, String link, int position, boolean admin) {
+        this.id = id;
+        this.operation = operation;
+        this.isActive = isActive;
+        this.link = link;
+        this.position = position;
+        this.admin = admin;
     }
 
     public UserOperation() {
@@ -88,6 +99,19 @@ public class UserOperation {
         this.position = position;
     }
 
+    public void setPosition(int position) {
+        this.position = position;
+    }
+
+    public boolean isAdmin() {
+        return admin;
+    }
+
+    public void setAdmin(boolean admin) {
+        this.admin = admin;
+    }
+
+
     @Override
     public String toString() {
         return "UserOperation{" +
@@ -96,6 +120,7 @@ public class UserOperation {
                 ", isActive=" + isActive +
                 ", link='" + link + '\'' +
                 ", position=" + position +
+                ", admin=" + admin +
                 '}';
     }
 }

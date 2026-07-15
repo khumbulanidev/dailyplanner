@@ -16,6 +16,9 @@ public interface DayRepository extends JpaRepository<Day, Long> {
     public Long findMaxId();
     public Day findByDate(LocalDate date);
 
-    @Query(value = "SELECT * FROM  Day WHERE date LIKE %:date% ", nativeQuery = true)
-    public List<Day> findByMonthAndYear(@Param("date") String date);
+//    @Query(value = "SELECT * FROM  Day WHERE date LIKE %:date% ", nativeQuery = true)
+//    public List<Day> findByMonthAndYear(@Param("date") String date);
+    @Query(value = "SELECT * FROM  Day WHERE MONTH(date)= :month AND YEAR(date)= :year", nativeQuery = true)
+    public List<Day> findByMonthAndYear(@Param("month") Long month, @Param("year") Long year );
+
 }
