@@ -212,7 +212,7 @@ public class UserService {
     }
 
     public UserDto deleteById(String email) {
-        Users user = userRepository.findByEmail(email).orElseThrow(() -> new DailyPlannerException("User with ID " + " not found"));
+        Users user = userRepository.findByEmail(email).orElseThrow(() -> new DailyPlannerException("User with ID " + email + " not found"));
 
        UserDto userDto = UserDto.builder()
                 .email(user.getEmail())
@@ -223,8 +223,8 @@ public class UserService {
                 .lastname(user.getLastname())
                 .roles(user.getRoles()).build();
        LOGGER.info("*************User dto {}", userDto);
+        refreshTokenService.deleteByEmail(email);
         userRepository.delete(user);
-        //userRepository.deleteById(email);
         return userDto;
     }
 
