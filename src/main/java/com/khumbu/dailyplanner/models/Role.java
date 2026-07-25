@@ -20,10 +20,19 @@ public class Role{
     @ManyToMany(mappedBy = "roles")
     List<Users> users = new ArrayList<>();
 
+    private boolean active;
+
     public Role(Long roleId, String role, List<Users> users) {
         this.roleId = roleId;
         this.name = role;
         this.users = users;
+    }
+
+    public Role(Long roleId, String name, List<Users> users, boolean active) {
+        this.roleId = roleId;
+        this.name = name;
+        this.users = users;
+        this.active = active;
     }
 
     public Role() {
@@ -58,6 +67,14 @@ public class Role{
 
     public void setUsers(List<Users> users) {
         this.users = users;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
     }
 
     @Override
