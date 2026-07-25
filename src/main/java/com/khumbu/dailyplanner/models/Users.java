@@ -31,7 +31,7 @@ public class Users {
     @JsonIgnore
     private List<Task> tasks = new ArrayList<>();
 
-    @ManyToMany
+    @ManyToMany ( cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
             name = "user_role",
             joinColumns = @JoinColumn(name = "email"),

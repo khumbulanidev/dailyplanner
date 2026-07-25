@@ -1,6 +1,7 @@
 package com.khumbu.dailyplanner.controller;
 
 
+import com.khumbu.dailyplanner.models.DailyTasksDto;
 import com.khumbu.dailyplanner.models.TaskDto;
 import com.khumbu.dailyplanner.service.TaskService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -60,6 +61,13 @@ public class TaskController {
 
     }
 
+    @PostMapping("/save-all")
+    public ResponseEntity<DailyTasksDto> saveAll(@RequestBody DailyTasksDto dailyTasksDto){
+        LOGGER.info("Inside saveAll");
+        return  ResponseEntity.ok(taskService.saveAll(dailyTasksDto));
+
+    }
+
     @PutMapping("/update")
     public ResponseEntity<TaskDto> updateTask(@RequestBody TaskDto taskDto){
         LOGGER.info("Inside updateTask");
@@ -70,6 +78,12 @@ public class TaskController {
     public ResponseEntity<TaskDto> deleteTask(@PathVariable Long taskId){
         return ResponseEntity.ok(this.taskService.deleteTaskById(taskId));
     }
+
+    @DeleteMapping("/delete-tasks")
+    public ResponseEntity<List<TaskDto>> deleteTasks(@RequestBody  List<Long> taskIds){
+        return ResponseEntity.ok(this.taskService.deleteTasksByIds(taskIds));
+    }
+
     @GetMapping("/month/{month}/{year}")
     public ResponseEntity<List<TaskDto>> getTasksForTheMonth(@PathVariable Long month, @PathVariable Long year){
         return ResponseEntity.ok(taskService.getTasksForTheMonth(month, year));

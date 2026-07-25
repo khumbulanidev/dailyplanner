@@ -20,7 +20,6 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -37,17 +36,16 @@ public class DayService {
     public DayDto save(DayDto dayDto){
 
         if(ObjectUtils.isEmpty(dayDto)){
-
             throw new DayException("DayDto cannot be empty");
         }
         Day day = dayRepository.findByDate(dayDto.getDate());
         if (day != null){
-            logger.error(" inside exception if ");
+            logger.error(" inside exception if  Day already exists {}",day.getDate());
             return null;
         }
 
         //find maximum id
-        Long maxId=dayRepository.findMaxId();
+        Long maxId = dayRepository.findMaxId();
          if(maxId == null)
          {
              maxId = 0L;
@@ -62,7 +60,7 @@ public class DayService {
     }
 
     public DayDto deleteById(Long id) {
-        Optional<Day> dayOptional=dayRepository.findById(id);
+        Optional<Day> dayOptional = dayRepository.findById(id);
         if(dayOptional.isPresent()){
             dayRepository.deleteById(id);
             return DayDto.create(dayOptional.get());
@@ -75,9 +73,9 @@ public class DayService {
 
         if(day == null){
             Long maxId = this.dayRepository.findMaxId() + 1;
-            Day day1 = new Day();
-            day1.setDate(date);
-            day = this.dayRepository.save(day1);
+            Day dayToSave = new Day();
+            dayToSave.setDate(date);
+            day = this.dayRepository.save(dayToSave);
         }
         DayDto dayDto = DayDto.create(day);
 
@@ -88,7 +86,7 @@ public class DayService {
         String yearMonth = formatDate( month,  year);
 
         //get the ids of all the days in month and year
-        List<Day> dayList = dayRepository.findByMonthAndYear(yearMonth);
+        List<Day> dayList = dayRepository.findByMonthAndYear(month, year);
         return dayList;
 
 

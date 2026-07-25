@@ -4,6 +4,7 @@ package com.khumbu.dailyplanner.models;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
+import java.time.LocalTime;
 
 import java.time.LocalTime;
 
@@ -16,6 +17,7 @@ import java.time.LocalTime;
 public class Task {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne

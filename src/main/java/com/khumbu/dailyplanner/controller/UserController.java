@@ -12,6 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @CrossOrigin(origins = "http://localhost:4200/")
 @RequestMapping("/api/v1/users")
@@ -63,6 +65,27 @@ private RefreshTokenService refreshTokenService;
 
       return  ResponseEntity.ok(authenticationResponse);
 
+    }
+
+    @GetMapping
+    public ResponseEntity<List<UserDto>> getAll(){
+        return ResponseEntity.ok(userService.getAll());
+    }
+
+    @PostMapping("/get")
+    public ResponseEntity<UserDto> getById(@RequestBody String email){
+        return ResponseEntity.ok(userService.getById(email));
+
+    }
+
+    @DeleteMapping("/delete")
+    public ResponseEntity<UserDto> deleteById(@RequestBody String email){
+        return ResponseEntity.ok(userService.deleteById(email));
+    }
+
+    @PostMapping("/update")
+    public ResponseEntity<UserDto> update(@RequestBody UserDto user){
+        return ResponseEntity.ok(userService.update(user));
     }
 
 }

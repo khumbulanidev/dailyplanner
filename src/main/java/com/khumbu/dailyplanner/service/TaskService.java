@@ -10,7 +10,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -22,6 +25,7 @@ import static com.khumbu.dailyplanner.constants.DailyPlannerConstants.END_TASK_F
 public class TaskService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskService.class);
+
     @Autowired
     private TaskRepository taskRepository;
     @Autowired
@@ -53,7 +57,6 @@ public class TaskService {
 
     }
 
-
     public TaskDto saveTask(TaskDto taskDto) {
         LOGGER.info("Inside saveTask");
         Day day = dayRepository.findByDate(taskDto.getDate());
@@ -66,20 +69,17 @@ public class TaskService {
         if(day == null){
             day = new Day();
             day.setDate(taskDto.getDate());
-            Long nextId = dayRepository.findMaxId() + 1;
-            day.setId(nextId);
             dayRepository.save(day);
         }
 
         Long maxId = taskRepository.findMaxId();
         if(maxId == null){
-            maxId=1L;
+            maxId = 1L;
         }
         Users user = userRepository.findById(taskDto.getEmail()).orElseThrow(()-> new DailyPlannerException("User with email "+ taskDto.getEmail() + " not found in the system."));
         Task task= Task.builder().id(maxId + 1).day(day).name(taskDto.getName()).isDone(taskDto.isDone()).duration(taskDto.getDuration()).quantity(taskDto.getQuantity()).comments(taskDto.getComments()).startTime(taskDto.getStartTime()).endTime(taskDto.getEndTime()).user(user).build();
 
-
-       Task savedTask = taskRepository.save(task);
+        Task savedTask = taskRepository.save(task);
         LOGGER.info("End saveTask");
        return TaskDto.builder().dayId(savedTask.getId()).date(savedTask.getDay().getDate()).name(savedTask.getName()).id(savedTask.getId()).isDone(savedTask.isDone()).comments(savedTask.getComments()).duration(savedTask.getDuration()).startTime(savedTask.getStartTime()).endTime(savedTask.getEndTime()).build();
     }
@@ -149,6 +149,8 @@ public class TaskService {
                 .id(task.getId())
                 .name(task.getName())
                 .isDone(task.isDone())
+                .startTime(setTime(task.getStartTime()))
+                .endTime(setTime(task.getEndTime()))
                 .quantity(task.getQuantity())
                 .date(task.getDay().getDate())
                 .duration(task.getDuration())
@@ -158,13 +160,16 @@ public class TaskService {
                 .build();
     }
 
+    private String setTime(LocalTime time){
+        return time == null ? UNSET_TIME : time.toString();
+    }
+
     public TaskDto updateTask(TaskDto taskDto) {
         //check if task exists
         Task task = taskRepository.findById(taskDto.getId()).orElseThrow(
           ()-> new DailyPlannerException("Task with id "+ taskDto.getId() + " not found.")
         );
       Day day = dayRepository.findByDate(taskDto.getDate());
-
 
        if(day == null){
            day = new Day();
@@ -199,11 +204,8 @@ public class TaskService {
 
     public List<TaskDto> getTasksForTheMonth(Long month, Long year) {
         String yearMonth = formatDate( month,  year);
-
-        //get the ids of all the days in month and year
-        List<Day> dayList = dayRepository.findByMonthAndYear(yearMonth);
+        List<Day> dayList = dayRepository.findByMonthAndYear(month, year);
         return new ArrayList<TaskDto>();
-
 
     }
 
@@ -242,7 +244,106 @@ public class TaskService {
     }
     private void validateEmail(String email){
         if(email == null || email.isEmpty()){
-            throw new DailyPlannerException("Email cannot be empty, login and try again");
+            throw new DailyPlannerException(NO_EMAIL);
         }
+    }
+
+    public List<TaskDto> deleteTasksByIds(List<Long> taskIds) {
+        List<Task> tasksToDelete = taskRepository.findAllById(taskIds);
+        taskRepository.deleteAllById(taskIds);
+        return  constructTaskDtos(tasksToDelete);
+    }
+
+    private List<TaskDto> constructTaskDtos(List<Task> tasks){
+      return  tasks.stream().map(
+                task->TaskDto.builder().id(task.getId())
+                        .date(task.getDay().getDate())
+                        .dayId(task.getDay().getId())
+                        .name(task.getName())
+                        .isDone(task.isDone())
+                        .duration(task.getDuration())
+                        .quantity(task.getQuantity())
+                        .comments(task.getComments())
+                        .email(task.getUser().getEmail())
+                        .startTime(task.getStartTime() == null ? UNSET_TIME : task.getStartTime().toString())
+                        .endTime(task.getEndTime() == null ? UNSET_TIME : task.getEndTime().toString())
+                        .build()).toList();
+    }
+
+    private List<Task> constructTasksFromDto(List<TaskDto> taskDtos){
+
+       return taskDtos.stream().map(dto -> {
+                    Day day = dayRepository.findById(dto.getDayId()).get();
+                    Users user = userRepository.findByEmail(dto.getEmail()).get();
+
+                    if (day == null) {
+                        throw new DailyPlannerException("Day not found");
+                    }
+
+                    if (user == null) {
+                        throw new DailyPlannerException("User not found");
+                    }
+                 return   Task.builder()
+                            .id(null)
+                            .day(day)
+                            .name(dto.getName())
+                            .isDone(dto.isDone())
+                            .duration(dto.getDuration())
+                            .quantity(dto.getQuantity())
+                            .comments(dto.getComments())
+                            .user(user)
+                            .startTime(constructTime(dto.getStartTime()))
+                            .endTime(constructTime(dto.getEndTime()))
+                            .build();
+
+                }
+                ).toList();
+
+    }
+@Transactional
+    public DailyTasksDto saveAll(DailyTasksDto dailyTasksDto) {
+
+        if(dailyTasksDto.getTasks().size() == 0){
+            throw new DailyPlannerException("No tasks to save");
+        }
+
+        List<Task> savedTasks = new ArrayList<>();
+        List<TaskDto> savedDtos = new ArrayList<>();
+        TaskDto firstTask = dailyTasksDto.getTasks().get(0);
+        Optional<Users> optionalUser = userRepository.findByEmail(firstTask.getEmail());
+       if(optionalUser.isPresent())
+       {
+          Users user =  optionalUser.get();
+           LocalDate startDate = dailyTasksDto.getStartDate();
+           LocalDate endDate = dailyTasksDto.getEndDate();
+           startDate.datesUntil(endDate.plusDays(1)).forEach( date->{
+                       Day startDay = dayRepository.findByDate(date);
+                       Day newDay = new Day();
+                       if(startDay == null){
+                           newDay.setDate(date);
+                           startDay = dayRepository.save(newDay);
+                       }
+
+               //build task from task dto
+                       //taskRepository.saveAll(constructTasksFromDto(dailyTasksDto.getTasks()));
+                       for(TaskDto taskDto : dailyTasksDto.getTasks()){
+                           taskDto.setDate(date);
+                           taskDto.setDayId(startDay.getId());
+                           savedDtos.add(saveTask(taskDto)); //task is being saved here
+                       }
+                   }
+           );
+           List<TaskDto> savedTaskDtos = constructTaskDtos(savedTasks);
+           DailyTasksDto savedDailyTasksDto = new DailyTasksDto();
+           savedDailyTasksDto.setStartDate(dailyTasksDto.getStartDate());
+           savedDailyTasksDto.setEndDate(dailyTasksDto.getEndDate());
+           savedDailyTasksDto.setTasks(savedDtos);
+
+           return savedDailyTasksDto;
+       }
+       else{
+           throw new DailyPlannerException("User not found in system " + firstTask.getEmail());
+       }
+
     }
 }

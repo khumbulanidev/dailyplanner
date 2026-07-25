@@ -1,9 +1,10 @@
 package com.khumbu.dailyplanner.dto;
 
 import com.khumbu.dailyplanner.models.Role;
+import lombok.Builder;
 
 import java.util.List;
-
+@Builder
 public class UserDto {
 
     private String email;
@@ -13,6 +14,10 @@ public class UserDto {
     private String phone;
     private String password;
 
+    private boolean isLocked;
+
+    private boolean isDisabled;
+
     private List<Role> roles;
 
     public UserDto(String email, String firstname, String lastname, String phone, String password) {
@@ -21,6 +26,17 @@ public class UserDto {
         this.lastname = lastname;
         this.phone = phone;
         this.password = password;
+    }
+
+    public UserDto(String email, String firstname, String lastname, String phone, String password, boolean isLocked, boolean isDisabled, List<Role> roles) {
+        this.email = email;
+        this.firstname = firstname;
+        this.lastname = lastname;
+        this.phone = phone;
+        this.password = password;
+        this.isLocked = isLocked;
+        this.isDisabled = isDisabled;
+        this.roles = roles;
     }
 
     public UserDto() {
@@ -83,6 +99,22 @@ public class UserDto {
         this.password = password;
     }
 
+    public boolean isLocked() {
+        return isLocked;
+    }
+
+    public void setLocked(boolean locked) {
+        isLocked = locked;
+    }
+
+    public boolean isDisabled() {
+        return isDisabled;
+    }
+
+    public void setDisabled(boolean disabled) {
+        isDisabled = disabled;
+    }
+
     @Override
     public String toString() {
         return "UserDto{" +
@@ -90,7 +122,8 @@ public class UserDto {
                 ", firstname='" + firstname + '\'' +
                 ", lastname='" + lastname + '\'' +
                 ", phone='" + phone + '\'' +
-                ", password='" + password + '\'' +
+                ", isLocked=" + isLocked +
+                ", isDisabled=" + isDisabled +
                 ", roles=" + roles +
                 '}';
     }
