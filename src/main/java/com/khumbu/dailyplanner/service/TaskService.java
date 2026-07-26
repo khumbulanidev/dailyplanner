@@ -18,7 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static com.khumbu.dailyplanner.constants.DailyPlannerConstants.END_TASK_FOR_TODAY;
+import static com.khumbu.dailyplanner.constants.DailyPlannerConstants.*;
 
 @Service
 @Slf4j
@@ -49,8 +49,8 @@ public class TaskService {
                         .duration(task.getDuration())
                         .quantity(task.getQuantity())
                         .comments(task.getComments())
-                        .startTime(task.getStartTime())
-                        .endTime(task.getEndTime())
+                        .startTime(setTime(task.getStartTime()))
+                        .endTime(setTime(task.getEndTime()))
                         .build()).toList();
         LOGGER.info("End getTasksById");
         return taskDtos;
@@ -77,11 +77,11 @@ public class TaskService {
             maxId = 1L;
         }
         Users user = userRepository.findById(taskDto.getEmail()).orElseThrow(()-> new DailyPlannerException("User with email "+ taskDto.getEmail() + " not found in the system."));
-        Task task= Task.builder().id(maxId + 1).day(day).name(taskDto.getName()).isDone(taskDto.isDone()).duration(taskDto.getDuration()).quantity(taskDto.getQuantity()).comments(taskDto.getComments()).startTime(taskDto.getStartTime()).endTime(taskDto.getEndTime()).user(user).build();
+        Task task= Task.builder().id(maxId + 1).day(day).name(taskDto.getName()).isDone(taskDto.isDone()).duration(taskDto.getDuration()).quantity(taskDto.getQuantity()).comments(taskDto.getComments()).startTime(constructTime(taskDto.getStartTime())).endTime(constructTime(taskDto.getEndTime())).user(user).build();
 
         Task savedTask = taskRepository.save(task);
         LOGGER.info("End saveTask");
-       return TaskDto.builder().dayId(savedTask.getId()).date(savedTask.getDay().getDate()).name(savedTask.getName()).id(savedTask.getId()).isDone(savedTask.isDone()).comments(savedTask.getComments()).duration(savedTask.getDuration()).startTime(savedTask.getStartTime()).endTime(savedTask.getEndTime()).build();
+       return TaskDto.builder().dayId(savedTask.getId()).date(savedTask.getDay().getDate()).name(savedTask.getName()).id(savedTask.getId()).isDone(savedTask.isDone()).comments(savedTask.getComments()).duration(savedTask.getDuration()).startTime(setTime(savedTask.getStartTime())).endTime(setTime(savedTask.getEndTime())).build();
     }
 
     public List<TaskDto> getTasksForToday() {
@@ -137,8 +137,8 @@ public class TaskService {
                 .date(task.getDay().getDate())
                 .duration(task.getDuration())
                 .comments(task.getComments())
-                .startTime(task.getStartTime())
-                .endTime(task.getEndTime())
+                .startTime(setTime(task.getStartTime()))
+                .endTime(setTime(task.getEndTime()))
                 .build();
     }
 
@@ -155,8 +155,8 @@ public class TaskService {
                 .date(task.getDay().getDate())
                 .duration(task.getDuration())
                 .comments(task.getComments())
-                .startTime(task.getStartTime())
-                .endTime(task.getEndTime())
+                .startTime(setTime(task.getStartTime()))
+                .endTime(setTime(task.getEndTime()))
                 .build();
     }
 
@@ -184,8 +184,8 @@ public class TaskService {
         task.setDone(taskDto.isDone());
         task.setComments(taskDto.getComments());
         task.setDuration(taskDto.getDuration());
-        task.setStartTime(taskDto.getStartTime());
-        task.setEndTime(taskDto.getEndTime());
+        task.setStartTime(constructTime(taskDto.getStartTime()));
+        task.setEndTime(constructTime(taskDto.getEndTime()));
 
 
         Task savedTask = taskRepository.save(task);
@@ -197,8 +197,8 @@ public class TaskService {
                 .date(savedTask.getDay().getDate())
                 .duration(savedTask.getDuration())
                 .comments(savedTask.getComments())
-                .startTime(savedTask.getStartTime())
-                .endTime(savedTask.getEndTime())
+                .startTime(setTime(savedTask.getStartTime()))
+                .endTime(setTime(savedTask.getEndTime()))
                 .build();
     }
 
@@ -237,8 +237,8 @@ public class TaskService {
                         .quantity(task.getQuantity())
                         .comments(task.getComments())
                         .email(task.getUser().getEmail())
-                        .startTime(task.getStartTime())
-                        .endTime(task.getEndTime())
+                        .startTime(setTime(task.getStartTime()))
+                        .endTime(setTime(task.getEndTime()))
                         .build()).toList();
         return taskDtos;
     }
@@ -300,7 +300,17 @@ public class TaskService {
                 ).toList();
 
     }
-@Transactional
+
+    private LocalTime constructTime(String time){
+
+        if(time == null || time.equals("0") || time.equals(UNSET_TIME)){
+            return null;
+        }else{
+            return LocalTime.parse(time);
+        }
+    }
+
+    @Transactional
     public DailyTasksDto saveAll(DailyTasksDto dailyTasksDto) {
 
         if(dailyTasksDto.getTasks().size() == 0){

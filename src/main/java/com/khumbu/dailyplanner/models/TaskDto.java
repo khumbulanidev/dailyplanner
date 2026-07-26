@@ -22,7 +22,7 @@ public class TaskDto {
     private LocalDate date;
     private Long dayId;
     private String email;
-    private LocalTime startTime;
-    private LocalTime endTime;
+    private String startTime;
+    private String endTime;
 
 }
