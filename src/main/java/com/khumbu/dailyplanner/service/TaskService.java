@@ -12,11 +12,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.time.temporal.TemporalAdjusters;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.khumbu.dailyplanner.constants.DailyPlannerConstants.*;
 
@@ -354,6 +355,230 @@ public class TaskService {
        else{
            throw new DailyPlannerException("User not found in system " + firstTask.getEmail());
        }
+
+    }
+
+    public Map<LocalDate, List<TaskDto>>  getTaskForWeek(String date1, String email) {
+        LocalDate date = formatDate(date1);
+
+        LocalDate monday = date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        List<LocalDate> fullWeek = monday.datesUntil(monday.plusWeeks(1)).toList();
+        List<Task> tasksForWeek = new ArrayList<>();
+        //find all tasks in this date range
+        for(LocalDate localDate : fullWeek){
+            Day day = dayRepository.findByDate(localDate);
+            if (day != null){
+                tasksForWeek.addAll(taskRepository.getTasksByDayIdAndEmail(day.getId(), email));
+            }
+        }
+        List<TaskDto> taskDtos = tasksForWeek.stream().map(ta ->{
+           return  TaskDto.builder().id(ta.getId())
+                    .date(ta.getDay().getDate())
+                    .dayId(ta.getDay().getId())
+                    .name(ta.getName())
+                    .isDone(ta.isDone())
+                    .duration(ta.getDuration())
+                    .quantity(ta.getQuantity())
+                    .comments(ta.getComments())
+                    .email(ta.getUser().getEmail())
+                    .startTime(setTime(ta.getStartTime()))
+                    .endTime(setTime(ta.getEndTime()))
+                    .build();
+        }).toList();
+
+       Map<LocalDate, List<TaskDto>> map = taskDtos.stream().collect(Collectors.groupingBy(TaskDto::getDate));
+
+        return map;
+    }
+
+    private List<TaskDto> convertTaskListToTaskDtoList(List<Task> taskList){
+
+        return taskList.stream().map(ta ->{
+            return  TaskDto.builder().id(ta.getId())
+                    .date(ta.getDay().getDate())
+                    .dayId(ta.getDay().getId())
+                    .name(ta.getName())
+                    .isDone(ta.isDone())
+                    .duration(ta.getDuration())
+                    .quantity(ta.getQuantity())
+                    .comments(ta.getComments())
+                    .email(ta.getUser().getEmail())
+                    .startTime(setTime(ta.getStartTime()))
+                    .endTime(setTime(ta.getEndTime()))
+                    .build();
+        }).toList();
+    }
+
+
+    public Map<Integer, List<TaskDto>> getTasksForMonth(int month, int year, String email){
+
+        Map<Integer, List<TaskDto>> tasksForMonth = new HashMap<Integer, List<TaskDto>>();
+        List<Task> tasksForTheMonth = taskRepository.getTasksForChart(month, email, year);
+
+        List<TaskDto> taskDtoList = convertTaskListToTaskDtoList(tasksForTheMonth);
+
+        Map<Integer, List<LocalDate>> weeksDateRangesForMonth = getWeeksDateRange(LocalDate.of(year, month, 1));
+
+        List<TaskDto> week1Tasks = new ArrayList<>();
+        tasksForMonth.put(1, week1Tasks);
+        List<TaskDto> week2Tasks = new ArrayList<>();
+        tasksForMonth.put(2, week2Tasks);
+        List<TaskDto> week3Tasks = new ArrayList<>();
+        tasksForMonth.put(3, week3Tasks);
+        List<TaskDto> week4Tasks = new ArrayList<>();
+        tasksForMonth.put(4, week4Tasks);
+        List<TaskDto> week5Tasks = new ArrayList<>();
+        tasksForMonth.put(5, week5Tasks);
+        List<TaskDto> week6Tasks = new ArrayList<>();
+        tasksForMonth.put(6, week6Tasks);
+
+        for(TaskDto taskDto : taskDtoList){
+
+                boolean isInWeek1 = checkWeek(taskDto.getDate(),weeksDateRangesForMonth.get(1).get(0), weeksDateRangesForMonth.get(1).get(1));
+                boolean isInWeek2 = checkWeek(taskDto.getDate(),weeksDateRangesForMonth.get(2).get(0), weeksDateRangesForMonth.get(2).get(1));
+                boolean isInWeek3 = checkWeek(taskDto.getDate(),weeksDateRangesForMonth.get(3).get(0), weeksDateRangesForMonth.get(3).get(1));
+                boolean isInWeek4 = checkWeek(taskDto.getDate(),weeksDateRangesForMonth.get(4).get(0), weeksDateRangesForMonth.get(4).get(1));
+                boolean isInWeek5 = checkWeek(taskDto.getDate(),weeksDateRangesForMonth.get(5).get(0), weeksDateRangesForMonth.get(5).get(1));
+                boolean isInWeek6 = checkWeek(taskDto.getDate(),weeksDateRangesForMonth.get(6).get(0), weeksDateRangesForMonth.get(6).get(1));
+
+                if(isInWeek1){
+                    tasksForMonth.merge(1, new ArrayList<>(Arrays.asList(taskDto)), (oldList, newList) ->{
+                        oldList.addAll(newList);
+                     return oldList;
+                });
+                }
+                else if(isInWeek2){
+                    tasksForMonth.merge(2, new ArrayList<>(Arrays.asList(taskDto)), (oldList, newList) ->{
+                        oldList.addAll(newList);
+                        return oldList;
+                    });
+                }
+                else if(isInWeek3){
+                    tasksForMonth.merge(3, new ArrayList<>(Arrays.asList(taskDto)), (oldList, newList) ->{
+                        oldList.addAll(newList);
+                        return oldList;
+                    });
+                }
+                else if(isInWeek4){
+                    tasksForMonth.merge(4, new ArrayList<>(Arrays.asList(taskDto)), (oldList, newList) ->{
+                        oldList.addAll(newList);
+                        return oldList;
+                    });
+                }
+                else if(isInWeek5){
+                    tasksForMonth.merge(5, new ArrayList<>(Arrays.asList(taskDto)), (oldList, newList) ->{
+                        oldList.addAll(newList);
+                        return oldList;
+                    });
+                }
+                else if(isInWeek6){
+                    tasksForMonth.merge(6, new ArrayList<>(Arrays.asList(taskDto)), (oldList, newList) ->{
+                        oldList.addAll(newList);
+                        return oldList;
+                    });
+                }
+            }
+
+
+        return tasksForMonth;
+    }
+
+    /***
+     * Filters tasks based on boolean value true for complete and false for incomplete
+     * @param allTasks
+     * @param isComplete
+     * @return
+     */
+    public Map<Integer, List<TaskDto>> filterTasksOnCompletion(Map<Integer, List<TaskDto>> allTasks, boolean isComplete){
+
+        for(int key : allTasks.keySet()){
+            allTasks.merge(key, allTasks.get(key).stream().filter(task -> task.isDone() == isComplete).toList(), (oldList, newList)->{
+                return  newList;
+            });
+        }
+
+        return allTasks;
+    }
+
+
+
+    //check if date is in the range
+    private boolean checkWeek(LocalDate date, LocalDate startDate, LocalDate endDate){
+        return date.isAfter(startDate.minusDays(1))  && date.isBefore(endDate.plusDays(1));
+    }
+
+    /***
+     * Gets all the weeks in a given month and associated date ranges for each week
+     * Key represents the week from 1 to N
+     * Value is a list with start date and end date for that week
+     * @param date
+     * @return Map<Integer, List<LocalDate>>
+     */
+    public Map<Integer, List<LocalDate>> getWeeksDateRange(LocalDate date) {
+
+        Map<Integer, List<LocalDate>> weeksDateRanges = new HashMap<>();
+
+        LocalDate firstDayOfMonth = date.with(TemporalAdjusters.firstDayOfMonth());
+        LocalDate endOfFirstWeek = firstDayOfMonth.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
+        List<LocalDate> dateRange = new ArrayList<>();
+        dateRange.add(firstDayOfMonth);
+        dateRange.add(endOfFirstWeek);
+        weeksDateRanges.put(1, dateRange);
+        LocalDate endOfWeek = endOfFirstWeek;
+
+        int daysInMonth = date.lengthOfMonth();
+        for(int i = 2; i < 7; i++){
+
+            if (daysInMonth < 28 && i == 5) {
+               continue;
+            }
+            LocalDate startOfWeek = endOfWeek.plusDays(1);
+            if (startOfWeek.getMonth() != date.getMonth()) {
+                continue;
+            }
+            endOfWeek = startOfWeek.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
+            dateRange = new ArrayList<>();
+            dateRange.add(startOfWeek);
+            dateRange.add(endOfWeek);
+            weeksDateRanges.put(i, dateRange);
+        }
+
+        //LocalDate firstDayOfWeek = date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        //find the date range for first week
+
+//        LocalDate startOfSecondWeek = endOfFirstWeek.plusDays(1);
+//        LocalDate endOfSecondWeek = startOfSecondWeek.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
+//        dateRange = new ArrayList<>();
+//        dateRange.add(startOfSecondWeek);
+//        dateRange.add(endOfSecondWeek);
+//        weeksDateRanges.put(2, dateRange);
+//
+//        LocalDate startOfThirdWeek = startOfSecondWeek.plusWeeks(1);
+//        LocalDate endOfThirdWeek = startOfThirdWeek.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
+//        dateRange = new ArrayList<>();
+//        dateRange.add(startOfThirdWeek);
+//        dateRange.add(endOfThirdWeek);
+//        weeksDateRanges.put(3, dateRange);
+//
+//        LocalDate startOfFourthWeek = startOfThirdWeek.plusWeeks(1);
+//        LocalDate endOfFourthWeek = startOfFourthWeek.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
+//        dateRange = new ArrayList<>();
+//        dateRange.add(startOfFourthWeek);
+//        dateRange.add(endOfFourthWeek);
+//        weeksDateRanges.put(4, dateRange);
+//
+//        //check if there is a fifth week
+//        int daysInMonth = date.lengthOfMonth();
+//        if (daysInMonth > 28) {
+//            LocalDate startOfFifthWeek = startOfFourthWeek.plusWeeks(1);
+//            LocalDate endOfFifthWeek = LocalDate.of(date.getYear(), date.getMonth(), daysInMonth);
+//            dateRange = new ArrayList<>();
+//            dateRange.add(startOfFifthWeek);
+//            dateRange.add(endOfFifthWeek);
+//            weeksDateRanges.put(5, dateRange);
+//        }
+
+        return weeksDateRanges;
 
     }
 }

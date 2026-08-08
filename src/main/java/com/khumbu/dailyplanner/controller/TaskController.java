@@ -3,6 +3,7 @@ package com.khumbu.dailyplanner.controller;
 
 import com.khumbu.dailyplanner.models.DailyTasksDto;
 import com.khumbu.dailyplanner.models.TaskDto;
+import com.khumbu.dailyplanner.models.TaskMapDto;
 import com.khumbu.dailyplanner.service.TaskService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
@@ -10,7 +11,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 
 @RestController
@@ -54,6 +58,11 @@ public class TaskController {
         return taskService.getTasksByDate(date);
     }
 
+    @GetMapping("/week/{email}/{date}")
+    public ResponseEntity<Map<LocalDate, List<TaskDto>>> getTasksForWeekGroupedByDay(@PathVariable String date , @PathVariable String email){
+       return  ResponseEntity.ok(taskService.getTaskForWeek(date, email));
+    }
+
     @PostMapping("/save")
     public ResponseEntity<TaskDto> saveTask(@RequestBody TaskDto taskDto){
         LOGGER.info("Inside saveTask");
@@ -87,6 +96,16 @@ public class TaskController {
     @GetMapping("/month/{month}/{year}")
     public ResponseEntity<List<TaskDto>> getTasksForTheMonth(@PathVariable Long month, @PathVariable Long year){
         return ResponseEntity.ok(taskService.getTasksForTheMonth(month, year));
+    }
+
+
+    @PostMapping("/complete")
+    public ResponseEntity<Map<Integer, List<TaskDto>>> getCompleteTasksForTheMonth(@RequestBody TaskMapDto taskMapDto){
+        return ResponseEntity.ok(taskService.filterTasksOnCompletion(taskService.getTasksForMonth(taskMapDto.getMonth(), taskMapDto.getYear(), taskMapDto.getEmail()),true));
+    }
+    @PostMapping("/incomplete")
+    public ResponseEntity<Map<Integer, List<TaskDto>>> getIncompleteTasksForTheMonth(@RequestBody TaskMapDto taskMapDto){
+        return ResponseEntity.ok(taskService.filterTasksOnCompletion(taskService.getTasksForMonth(taskMapDto.getMonth(), taskMapDto.getYear(), taskMapDto.getEmail()),false));
     }
 
 
