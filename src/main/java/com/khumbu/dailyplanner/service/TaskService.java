@@ -8,7 +8,6 @@ import com.khumbu.dailyplanner.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,22 +26,27 @@ public class TaskService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskService.class);
 
-    @Autowired
-    private TaskRepository taskRepository;
-    @Autowired
-    private DayRepository dayRepository;
-    @Autowired
-    private DayService dayService;
+    private final TaskRepository taskRepository;
 
-    @Autowired
+    private final DayRepository dayRepository;
+
+    private final DayService dayService;
+
     private UserRepository userRepository;
 
-    public List<TaskDto> getTasksById(Long day_id){
+    public TaskService(TaskRepository taskRepository, DayRepository dayRepository, DayService dayService, UserRepository userRepository) {
+        this.taskRepository = taskRepository;
+        this.dayRepository = dayRepository;
+        this.dayService = dayService;
+        this.userRepository = userRepository;
+    }
+
+    public List<TaskDto> getTasksById(Long day_id) {
         LOGGER.info("Inside getTasksById");
 
-       List<Task> tasks = taskRepository.getTasksByDayId(day_id);
+        List<Task> tasks = taskRepository.getTasksByDayId(day_id);
         List<TaskDto> taskDtos = tasks.stream().map(
-                task->TaskDto.builder().id(task.getId())
+                task -> TaskDto.builder().id(task.getId())
                         .date(task.getDay().getDate())
                         .dayId(task.getDay().getId())
                         .name(task.getName())
@@ -61,28 +65,28 @@ public class TaskService {
     public TaskDto saveTask(TaskDto taskDto) {
         LOGGER.info("Inside saveTask");
         Day day = dayRepository.findByDate(taskDto.getDate());
-        Optional<Task> existingTask = taskRepository.findByNameAndDayAndUserEmail(taskDto.getName(),day, taskDto.getEmail()) ;
+        Optional<Task> existingTask = taskRepository.findByNameAndDayAndUserEmail(taskDto.getName(), day, taskDto.getEmail());
 
-        if(existingTask.isPresent() && existingTask.get().getDay().getDate().equals(taskDto.getDate()) ){
-         throw    new DailyPlannerException("Task with name "+ taskDto.getName() +" already exists for this date.");
+        if (existingTask.isPresent() && existingTask.get().getDay().getDate().equals(taskDto.getDate())) {
+            throw new DailyPlannerException("Task with name " + taskDto.getName() + " already exists for this date.");
         }
 
-        if(day == null){
+        if (day == null) {
             day = new Day();
             day.setDate(taskDto.getDate());
             dayRepository.save(day);
         }
 
         Long maxId = taskRepository.findMaxId();
-        if(maxId == null){
+        if (maxId == null) {
             maxId = 1L;
         }
-        Users user = userRepository.findById(taskDto.getEmail()).orElseThrow(()-> new DailyPlannerException("User with email "+ taskDto.getEmail() + " not found in the system."));
-        Task task= Task.builder().id(maxId + 1).day(day).name(taskDto.getName()).isDone(taskDto.isDone()).duration(taskDto.getDuration()).quantity(taskDto.getQuantity()).comments(taskDto.getComments()).startTime(constructTime(taskDto.getStartTime())).endTime(constructTime(taskDto.getEndTime())).user(user).build();
+        Users user = userRepository.findById(taskDto.getEmail()).orElseThrow(() -> new DailyPlannerException("User with email " + taskDto.getEmail() + " not found in the system."));
+        Task task = Task.builder().id(maxId + 1).day(day).name(taskDto.getName()).isDone(taskDto.isDone()).duration(taskDto.getDuration()).quantity(taskDto.getQuantity()).comments(taskDto.getComments()).startTime(constructTime(taskDto.getStartTime())).endTime(constructTime(taskDto.getEndTime())).user(user).build();
 
         Task savedTask = taskRepository.save(task);
         LOGGER.info("End saveTask");
-       return TaskDto.builder().dayId(savedTask.getId()).date(savedTask.getDay().getDate()).name(savedTask.getName()).id(savedTask.getId()).isDone(savedTask.isDone()).comments(savedTask.getComments()).duration(savedTask.getDuration()).startTime(setTime(savedTask.getStartTime())).endTime(setTime(savedTask.getEndTime())).build();
+        return TaskDto.builder().dayId(savedTask.getId()).date(savedTask.getDay().getDate()).name(savedTask.getName()).id(savedTask.getId()).isDone(savedTask.isDone()).comments(savedTask.getComments()).duration(savedTask.getDuration()).startTime(setTime(savedTask.getStartTime())).endTime(setTime(savedTask.getEndTime())).build();
     }
 
     public List<TaskDto> getTasksForToday() {
@@ -91,7 +95,7 @@ public class TaskService {
         Day today = dayRepository.findByDate(LocalDate.now());
         List<TaskDto> taskDtos = new ArrayList<>();
 
-        if(today == null){
+        if (today == null) {
             return taskDtos;
         }
         LOGGER.info(END_TASK_FOR_TODAY);
@@ -104,7 +108,7 @@ public class TaskService {
         Day today = dayRepository.findByDate(formatDate(date));
         List<TaskDto> taskDtos = new ArrayList<>();
 
-        if(today == null){
+        if (today == null) {
             return taskDtos;
         }
         LOGGER.info(END_TASK_FOR_TODAY);
@@ -112,13 +116,13 @@ public class TaskService {
 
     }
 
-    private LocalDate formatDate(String date){
+    private LocalDate formatDate(String date) {
         //validate date before formating
         String dateArray[] = date.split("-");
 
-        if(dateArray.length != 3){
-            LOGGER.error("Invalid date {}",date);
-            throw  new DailyPlannerException("Invalid date "+ date);
+        if (dateArray.length != 3) {
+            LOGGER.error("Invalid date {}", date);
+            throw new DailyPlannerException("Invalid date " + date);
         }
 
         return LocalDate.of(Integer.parseInt(dateArray[2]), Integer.parseInt(dateArray[0]), Integer.parseInt(dateArray[1]));
@@ -126,7 +130,7 @@ public class TaskService {
 
     public TaskDto deleteTaskById(Long taskId) {
 
-        Task task = this.taskRepository.findById(taskId).orElseThrow(()-> new DailyPlannerException("Task with ID " + taskId +" not found."));
+        Task task = this.taskRepository.findById(taskId).orElseThrow(() -> new DailyPlannerException("Task with ID " + taskId + " not found."));
 
         this.taskRepository.deleteById(taskId);
 
@@ -144,7 +148,7 @@ public class TaskService {
     }
 
     public TaskDto getTaskById(Long id) {
-        Task task = this.taskRepository.findById(id).orElseThrow(()->  new DailyPlannerException("Task with id "+ id + " was not found."));
+        Task task = this.taskRepository.findById(id).orElseThrow(() -> new DailyPlannerException("Task with id " + id + " was not found."));
 
         return TaskDto.builder()
                 .id(task.getId())
@@ -161,24 +165,24 @@ public class TaskService {
                 .build();
     }
 
-    private String setTime(LocalTime time){
+    private String setTime(LocalTime time) {
         return time == null ? UNSET_TIME : time.toString();
     }
 
     public TaskDto updateTask(TaskDto taskDto) {
         //check if task exists
         Task task = taskRepository.findById(taskDto.getId()).orElseThrow(
-          ()-> new DailyPlannerException("Task with id "+ taskDto.getId() + " not found.")
+                () -> new DailyPlannerException("Task with id " + taskDto.getId() + " not found.")
         );
-      Day day = dayRepository.findByDate(taskDto.getDate());
+        Day day = dayRepository.findByDate(taskDto.getDate());
 
-       if(day == null){
-           day = new Day();
-           day.setDate(taskDto.getDate());
-          DayDto savedDay = dayService.save(DayDto.create(day));
-          task.setDay(savedDay.getDay());
+        if (day == null) {
+            day = new Day();
+            day.setDate(taskDto.getDate());
+            DayDto savedDay = dayService.save(DayDto.create(day));
+            task.setDay(savedDay.getDay());
 
-       }
+        }
 
         task.setId(taskDto.getId());
         task.setName(taskDto.getName());
@@ -204,18 +208,18 @@ public class TaskService {
     }
 
     public List<TaskDto> getTasksForTheMonth(Long month, Long year) {
-        String yearMonth = formatDate( month,  year);
+        String yearMonth = formatDate(month, year);
         List<Day> dayList = dayRepository.findByMonthAndYear(month, year);
         return new ArrayList<TaskDto>();
 
     }
 
-    private String formatDate(Long month, Long year){
-        String monthString = month+"";
-        if(month < 10){
-            monthString = "0"+month;
+    private String formatDate(Long month, Long year) {
+        String monthString = month + "";
+        if (month < 10) {
+            monthString = "0" + month;
         }
-        return year+"-"+ monthString;
+        return year + "-" + monthString;
     }
 
     public List<TaskDto> getTasksByDateEmail(String date, String email) {
@@ -223,13 +227,13 @@ public class TaskService {
         Day today = dayRepository.findByDate(formatDate(date));
         List<TaskDto> taskDtos = new ArrayList<>();
         validateEmail(email);
-        if(today == null){
+        if (today == null) {
             return taskDtos;
         }
         LOGGER.info("End getTasksForToday");
         List<Task> tasks = taskRepository.getTasksByDayIdAndEmail(today.getId(), email);
-      taskDtos = tasks.stream().map(
-                task->TaskDto.builder().id(task.getId())
+        taskDtos = tasks.stream().map(
+                task -> TaskDto.builder().id(task.getId())
                         .date(task.getDay().getDate())
                         .dayId(task.getDay().getId())
                         .name(task.getName())
@@ -243,8 +247,9 @@ public class TaskService {
                         .build()).toList();
         return taskDtos;
     }
-    private void validateEmail(String email){
-        if(email == null || email.isEmpty()){
+
+    private void validateEmail(String email) {
+        if (email == null || email.isEmpty()) {
             throw new DailyPlannerException(NO_EMAIL);
         }
     }
@@ -252,12 +257,12 @@ public class TaskService {
     public List<TaskDto> deleteTasksByIds(List<Long> taskIds) {
         List<Task> tasksToDelete = taskRepository.findAllById(taskIds);
         taskRepository.deleteAllById(taskIds);
-        return  constructTaskDtos(tasksToDelete);
+        return constructTaskDtos(tasksToDelete);
     }
 
-    private List<TaskDto> constructTaskDtos(List<Task> tasks){
-      return  tasks.stream().map(
-                task->TaskDto.builder().id(task.getId())
+    private List<TaskDto> constructTaskDtos(List<Task> tasks) {
+        return tasks.stream().map(
+                task -> TaskDto.builder().id(task.getId())
                         .date(task.getDay().getDate())
                         .dayId(task.getDay().getId())
                         .name(task.getName())
@@ -271,9 +276,9 @@ public class TaskService {
                         .build()).toList();
     }
 
-    private List<Task> constructTasksFromDto(List<TaskDto> taskDtos){
+    private List<Task> constructTasksFromDto(List<TaskDto> taskDtos) {
 
-       return taskDtos.stream().map(dto -> {
+        return taskDtos.stream().map(dto -> {
                     Day day = dayRepository.findById(dto.getDayId()).get();
                     Users user = userRepository.findByEmail(dto.getEmail()).get();
 
@@ -284,7 +289,7 @@ public class TaskService {
                     if (user == null) {
                         throw new DailyPlannerException("User not found");
                     }
-                 return   Task.builder()
+                    return Task.builder()
                             .id(null)
                             .day(day)
                             .name(dto.getName())
@@ -298,15 +303,15 @@ public class TaskService {
                             .build();
 
                 }
-                ).toList();
+        ).toList();
 
     }
 
-    private LocalTime constructTime(String time){
+    private LocalTime constructTime(String time) {
 
-        if(time == null || time.equals("0") || time.equals(UNSET_TIME)){
+        if (time == null || time.equals("0") || time.equals(UNSET_TIME)) {
             return null;
-        }else{
+        } else {
             return LocalTime.parse(time);
         }
     }
@@ -314,7 +319,7 @@ public class TaskService {
     @Transactional
     public DailyTasksDto saveAll(DailyTasksDto dailyTasksDto) {
 
-        if(dailyTasksDto.getTasks().size() == 0){
+        if (dailyTasksDto.getTasks().size() == 0) {
             throw new DailyPlannerException("No tasks to save");
         }
 
@@ -322,57 +327,55 @@ public class TaskService {
         List<TaskDto> savedDtos = new ArrayList<>();
         TaskDto firstTask = dailyTasksDto.getTasks().get(0);
         Optional<Users> optionalUser = userRepository.findByEmail(firstTask.getEmail());
-       if(optionalUser.isPresent())
-       {
-          Users user =  optionalUser.get();
-           LocalDate startDate = dailyTasksDto.getStartDate();
-           LocalDate endDate = dailyTasksDto.getEndDate();
-           startDate.datesUntil(endDate.plusDays(1)).forEach( date->{
-                       Day startDay = dayRepository.findByDate(date);
-                       Day newDay = new Day();
-                       if(startDay == null){
-                           newDay.setDate(date);
-                           startDay = dayRepository.save(newDay);
-                       }
+        if (optionalUser.isPresent()) {
+            Users user = optionalUser.get();
+            LocalDate startDate = dailyTasksDto.getStartDate();
+            LocalDate endDate = dailyTasksDto.getEndDate();
+            startDate.datesUntil(endDate.plusDays(1)).forEach(date -> {
+                        Day startDay = dayRepository.findByDate(date);
+                        Day newDay = new Day();
+                        if (startDay == null) {
+                            newDay.setDate(date);
+                            startDay = dayRepository.save(newDay);
+                        }
 
-               //build task from task dto
-                       //taskRepository.saveAll(constructTasksFromDto(dailyTasksDto.getTasks()));
-                       for(TaskDto taskDto : dailyTasksDto.getTasks()){
-                           taskDto.setDate(date);
-                           taskDto.setDayId(startDay.getId());
-                           savedDtos.add(saveTask(taskDto)); //task is being saved here
-                       }
-                   }
-           );
-           List<TaskDto> savedTaskDtos = constructTaskDtos(savedTasks);
-           DailyTasksDto savedDailyTasksDto = new DailyTasksDto();
-           savedDailyTasksDto.setStartDate(dailyTasksDto.getStartDate());
-           savedDailyTasksDto.setEndDate(dailyTasksDto.getEndDate());
-           savedDailyTasksDto.setTasks(savedDtos);
+                        //build task from task dto
+                        //taskRepository.saveAll(constructTasksFromDto(dailyTasksDto.getTasks()));
+                        for (TaskDto taskDto : dailyTasksDto.getTasks()) {
+                            taskDto.setDate(date);
+                            taskDto.setDayId(startDay.getId());
+                            savedDtos.add(saveTask(taskDto)); //task is being saved here
+                        }
+                    }
+            );
+            List<TaskDto> savedTaskDtos = constructTaskDtos(savedTasks);
+            DailyTasksDto savedDailyTasksDto = new DailyTasksDto();
+            savedDailyTasksDto.setStartDate(dailyTasksDto.getStartDate());
+            savedDailyTasksDto.setEndDate(dailyTasksDto.getEndDate());
+            savedDailyTasksDto.setTasks(savedDtos);
 
-           return savedDailyTasksDto;
-       }
-       else{
-           throw new DailyPlannerException("User not found in system " + firstTask.getEmail());
-       }
+            return savedDailyTasksDto;
+        } else {
+            throw new DailyPlannerException("User not found in system " + firstTask.getEmail());
+        }
 
     }
 
-    public Map<LocalDate, List<TaskDto>>  getTaskForWeek(String date1, String email) {
+    public Map<LocalDate, List<TaskDto>> getTaskForWeek(String date1, String email) {
         LocalDate date = formatDate(date1);
 
         LocalDate monday = date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
         List<LocalDate> fullWeek = monday.datesUntil(monday.plusWeeks(1)).toList();
         List<Task> tasksForWeek = new ArrayList<>();
         //find all tasks in this date range
-        for(LocalDate localDate : fullWeek){
+        for (LocalDate localDate : fullWeek) {
             Day day = dayRepository.findByDate(localDate);
-            if (day != null){
+            if (day != null) {
                 tasksForWeek.addAll(taskRepository.getTasksByDayIdAndEmail(day.getId(), email));
             }
         }
-        List<TaskDto> taskDtos = tasksForWeek.stream().map(ta ->{
-           return  TaskDto.builder().id(ta.getId())
+        List<TaskDto> taskDtos = tasksForWeek.stream().map(ta -> {
+            return TaskDto.builder().id(ta.getId())
                     .date(ta.getDay().getDate())
                     .dayId(ta.getDay().getId())
                     .name(ta.getName())
@@ -386,15 +389,15 @@ public class TaskService {
                     .build();
         }).toList();
 
-       Map<LocalDate, List<TaskDto>> map = taskDtos.stream().collect(Collectors.groupingBy(TaskDto::getDate));
+        Map<LocalDate, List<TaskDto>> map = taskDtos.stream().collect(Collectors.groupingBy(TaskDto::getDate));
 
         return map;
     }
 
-    private List<TaskDto> convertTaskListToTaskDtoList(List<Task> taskList){
+    private List<TaskDto> convertTaskListToTaskDtoList(List<Task> taskList) {
 
-        return taskList.stream().map(ta ->{
-            return  TaskDto.builder().id(ta.getId())
+        return taskList.stream().map(ta -> {
+            return TaskDto.builder().id(ta.getId())
                     .date(ta.getDay().getDate())
                     .dayId(ta.getDay().getId())
                     .name(ta.getName())
@@ -410,7 +413,7 @@ public class TaskService {
     }
 
 
-    public Map<Integer, List<TaskDto>> getTasksForMonth(int month, int year, String email){
+    public Map<Integer, List<TaskDto>> getTasksForMonth(int month, int year, String email) {
 
         Map<Integer, List<TaskDto>> tasksForMonth = new HashMap<Integer, List<TaskDto>>();
         List<Task> tasksForTheMonth = taskRepository.getTasksForChart(month, email, year);
@@ -432,52 +435,47 @@ public class TaskService {
         List<TaskDto> week6Tasks = new ArrayList<>();
         tasksForMonth.put(6, week6Tasks);
 
-        for(TaskDto taskDto : taskDtoList){
+        for (TaskDto taskDto : taskDtoList) {
 
-                boolean isInWeek1 = checkWeek(taskDto.getDate(),weeksDateRangesForMonth.get(1).get(0), weeksDateRangesForMonth.get(1).get(1));
-                boolean isInWeek2 = checkWeek(taskDto.getDate(),weeksDateRangesForMonth.get(2).get(0), weeksDateRangesForMonth.get(2).get(1));
-                boolean isInWeek3 = checkWeek(taskDto.getDate(),weeksDateRangesForMonth.get(3).get(0), weeksDateRangesForMonth.get(3).get(1));
-                boolean isInWeek4 = checkWeek(taskDto.getDate(),weeksDateRangesForMonth.get(4).get(0), weeksDateRangesForMonth.get(4).get(1));
-                boolean isInWeek5 = checkWeek(taskDto.getDate(),weeksDateRangesForMonth.get(5).get(0), weeksDateRangesForMonth.get(5).get(1));
-                boolean isInWeek6 = checkWeek(taskDto.getDate(),weeksDateRangesForMonth.get(6).get(0), weeksDateRangesForMonth.get(6).get(1));
+            boolean isInWeek1 = checkWeek(taskDto.getDate(), weeksDateRangesForMonth.get(1).get(0), weeksDateRangesForMonth.get(1).get(1));
+            boolean isInWeek2 = checkWeek(taskDto.getDate(), weeksDateRangesForMonth.get(2).get(0), weeksDateRangesForMonth.get(2).get(1));
+            boolean isInWeek3 = checkWeek(taskDto.getDate(), weeksDateRangesForMonth.get(3).get(0), weeksDateRangesForMonth.get(3).get(1));
+            boolean isInWeek4 = checkWeek(taskDto.getDate(), weeksDateRangesForMonth.get(4).get(0), weeksDateRangesForMonth.get(4).get(1));
+            boolean isInWeek5 = weeksDateRangesForMonth.get(6).size() == 2 ? checkWeek(taskDto.getDate(), weeksDateRangesForMonth.get(5).get(0), weeksDateRangesForMonth.get(5).get(1)) : false;
+            boolean isInWeek6 = weeksDateRangesForMonth.get(6).size() == 2 ? checkWeek(taskDto.getDate(), weeksDateRangesForMonth.get(6).get(0), weeksDateRangesForMonth.get(6).get(1)) : false;
 
-                if(isInWeek1){
-                    tasksForMonth.merge(1, new ArrayList<>(Arrays.asList(taskDto)), (oldList, newList) ->{
-                        oldList.addAll(newList);
-                     return oldList;
+            if (isInWeek1) {
+                tasksForMonth.merge(1, new ArrayList<>(Arrays.asList(taskDto)), (oldList, newList) -> {
+                    oldList.addAll(newList);
+                    return oldList;
                 });
-                }
-                else if(isInWeek2){
-                    tasksForMonth.merge(2, new ArrayList<>(Arrays.asList(taskDto)), (oldList, newList) ->{
-                        oldList.addAll(newList);
-                        return oldList;
-                    });
-                }
-                else if(isInWeek3){
-                    tasksForMonth.merge(3, new ArrayList<>(Arrays.asList(taskDto)), (oldList, newList) ->{
-                        oldList.addAll(newList);
-                        return oldList;
-                    });
-                }
-                else if(isInWeek4){
-                    tasksForMonth.merge(4, new ArrayList<>(Arrays.asList(taskDto)), (oldList, newList) ->{
-                        oldList.addAll(newList);
-                        return oldList;
-                    });
-                }
-                else if(isInWeek5){
-                    tasksForMonth.merge(5, new ArrayList<>(Arrays.asList(taskDto)), (oldList, newList) ->{
-                        oldList.addAll(newList);
-                        return oldList;
-                    });
-                }
-                else if(isInWeek6){
-                    tasksForMonth.merge(6, new ArrayList<>(Arrays.asList(taskDto)), (oldList, newList) ->{
-                        oldList.addAll(newList);
-                        return oldList;
-                    });
-                }
+            } else if (isInWeek2) {
+                tasksForMonth.merge(2, new ArrayList<>(Arrays.asList(taskDto)), (oldList, newList) -> {
+                    oldList.addAll(newList);
+                    return oldList;
+                });
+            } else if (isInWeek3) {
+                tasksForMonth.merge(3, new ArrayList<>(Arrays.asList(taskDto)), (oldList, newList) -> {
+                    oldList.addAll(newList);
+                    return oldList;
+                });
+            } else if (isInWeek4) {
+                tasksForMonth.merge(4, new ArrayList<>(Arrays.asList(taskDto)), (oldList, newList) -> {
+                    oldList.addAll(newList);
+                    return oldList;
+                });
+            } else if (isInWeek5) {
+                tasksForMonth.merge(5, new ArrayList<>(Arrays.asList(taskDto)), (oldList, newList) -> {
+                    oldList.addAll(newList);
+                    return oldList;
+                });
+            } else if (isInWeek6) {
+                tasksForMonth.merge(6, new ArrayList<>(Arrays.asList(taskDto)), (oldList, newList) -> {
+                    oldList.addAll(newList);
+                    return oldList;
+                });
             }
+        }
 
 
         return tasksForMonth;
@@ -489,11 +487,11 @@ public class TaskService {
      * @param isComplete
      * @return
      */
-    public Map<Integer, List<TaskDto>> filterTasksOnCompletion(Map<Integer, List<TaskDto>> allTasks, boolean isComplete){
+    public Map<Integer, List<TaskDto>> filterTasksOnCompletion(Map<Integer, List<TaskDto>> allTasks, boolean isComplete) {
 
-        for(int key : allTasks.keySet()){
-            allTasks.merge(key, allTasks.get(key).stream().filter(task -> task.isDone() == isComplete).toList(), (oldList, newList)->{
-                return  newList;
+        for (int key : allTasks.keySet()) {
+            allTasks.merge(key, allTasks.get(key).stream().filter(task -> task.isDone() == isComplete).toList(), (oldList, newList) -> {
+                return newList;
             });
         }
 
@@ -501,10 +499,9 @@ public class TaskService {
     }
 
 
-
     //check if date is in the range
-    private boolean checkWeek(LocalDate date, LocalDate startDate, LocalDate endDate){
-        return date.isAfter(startDate.minusDays(1))  && date.isBefore(endDate.plusDays(1));
+    private boolean checkWeek(LocalDate date, LocalDate startDate, LocalDate endDate) {
+        return date.isAfter(startDate.minusDays(1)) && date.isBefore(endDate.plusDays(1));
     }
 
     /***
@@ -512,7 +509,7 @@ public class TaskService {
      * Key represents the week from 1 to N
      * Value is a list with start date and end date for that week
      * @param date
-     * @return Map<Integer, List<LocalDate>>
+     * @return Map<Integer, List < LocalDate>>
      */
     public Map<Integer, List<LocalDate>> getWeeksDateRange(LocalDate date) {
 
@@ -527,13 +524,13 @@ public class TaskService {
         LocalDate endOfWeek = endOfFirstWeek;
 
         int daysInMonth = date.lengthOfMonth();
-        for(int i = 2; i < 7; i++){
+        for (int i = 2; i < 7; i++) {
 
-            if (daysInMonth < 28 && i == 5) {
-               continue;
-            }
+
             LocalDate startOfWeek = endOfWeek.plusDays(1);
             if (startOfWeek.getMonth() != date.getMonth()) {
+                dateRange = new ArrayList<>();
+                weeksDateRanges.put(i, dateRange);
                 continue;
             }
             endOfWeek = startOfWeek.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
@@ -543,42 +540,6 @@ public class TaskService {
             weeksDateRanges.put(i, dateRange);
         }
 
-        //LocalDate firstDayOfWeek = date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
-        //find the date range for first week
-
-//        LocalDate startOfSecondWeek = endOfFirstWeek.plusDays(1);
-//        LocalDate endOfSecondWeek = startOfSecondWeek.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
-//        dateRange = new ArrayList<>();
-//        dateRange.add(startOfSecondWeek);
-//        dateRange.add(endOfSecondWeek);
-//        weeksDateRanges.put(2, dateRange);
-//
-//        LocalDate startOfThirdWeek = startOfSecondWeek.plusWeeks(1);
-//        LocalDate endOfThirdWeek = startOfThirdWeek.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
-//        dateRange = new ArrayList<>();
-//        dateRange.add(startOfThirdWeek);
-//        dateRange.add(endOfThirdWeek);
-//        weeksDateRanges.put(3, dateRange);
-//
-//        LocalDate startOfFourthWeek = startOfThirdWeek.plusWeeks(1);
-//        LocalDate endOfFourthWeek = startOfFourthWeek.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
-//        dateRange = new ArrayList<>();
-//        dateRange.add(startOfFourthWeek);
-//        dateRange.add(endOfFourthWeek);
-//        weeksDateRanges.put(4, dateRange);
-//
-//        //check if there is a fifth week
-//        int daysInMonth = date.lengthOfMonth();
-//        if (daysInMonth > 28) {
-//            LocalDate startOfFifthWeek = startOfFourthWeek.plusWeeks(1);
-//            LocalDate endOfFifthWeek = LocalDate.of(date.getYear(), date.getMonth(), daysInMonth);
-//            dateRange = new ArrayList<>();
-//            dateRange.add(startOfFifthWeek);
-//            dateRange.add(endOfFifthWeek);
-//            weeksDateRanges.put(5, dateRange);
-//        }
-
         return weeksDateRanges;
-
     }
 }
